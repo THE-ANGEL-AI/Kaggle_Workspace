@@ -1,9 +1,53 @@
 import { motion, useScroll, useTransform, useMotionValue } from 'framer-motion';
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useMousePosition } from '../hooks/useMousePosition';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
 const ASSET_BASE = import.meta.env.BASE_URL;
+
+/**
+ * HeroImage — загружает character.png с fallback на случай ошибки.
+ * Файл ~3.2 МБ, может не загрузиться на медленных сетях.
+ */
+function HeroImage() {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div
+        className="hero-character hero-character-fallback"
+        aria-label="Изображение персонажа не загрузилось"
+        style={{
+          width: 'clamp(280px, 38vw, 520px)',
+          aspectRatio: '16/9',
+          background: 'linear-gradient(135deg, var(--bg-elevated), var(--bg-glass))',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '3rem',
+          color: 'var(--neon-magenta)',
+          borderRadius: 'inherit',
+        }}
+      >
+        ✦
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className="hero-character"
+      src={`${ASSET_BASE}assets/character.png`}
+      width="640"
+      height="360"
+      alt="Киберпанк-талисман THE ANGEL AI — главный персонаж проекта"
+      decoding="async"
+      loading="eager"
+      fetchPriority="high"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 /**
  * Hero — главный экран лендинга.
@@ -73,6 +117,11 @@ export function Hero() {
         style={reduced ? undefined : { y: bgY }}
       />
 
+      {/* Ambient orbs */}
+      <div className="hero-orb hero-orb-1" aria-hidden="true" />
+      <div className="hero-orb hero-orb-2" aria-hidden="true" />
+      <div className="hero-orb hero-orb-3" aria-hidden="true" />
+
       <div className="hero-grid">
         <motion.div
           className="hero-inner"
@@ -122,7 +171,7 @@ export function Hero() {
         >
           {/* Mouse-tracking spotlight (за персонажем, следует за курсором) */}
           <motion.div
-            className="hero-mouse-glow"
+            className="hero-spotlight"
             aria-hidden="true"
             style={mouseStyle}
           />
@@ -131,23 +180,14 @@ export function Hero() {
           <div className="hero-character-glow" aria-hidden="true" />
 
           <div className="hero-character-frame">
-            <img
-              className="hero-character"
-              src={`${ASSET_BASE}assets/character.png`}
-              width="640"
-              height="360"
-              alt="Киберпанк-талисман THE ANGEL AI — главный персонаж проекта"
-              decoding="async"
-              loading="eager"
-              fetchPriority="high"
-            />
-            <span className="hero-character-corner tl" aria-hidden="true" />
-            <span className="hero-character-corner tr" aria-hidden="true" />
-            <span className="hero-character-corner bl" aria-hidden="true" />
-            <span className="hero-character-corner br" aria-hidden="true" />
+            <HeroImage />
+            <span className="hero-corner tl" aria-hidden="true" />
+            <span className="hero-corner tr" aria-hidden="true" />
+            <span className="hero-corner bl" aria-hidden="true" />
+            <span className="hero-corner br" aria-hidden="true" />
           </div>
 
-          <figcaption className="hero-character-caption">// mascot.v2.6 — flux_dev</figcaption>
+          <figcaption className="hero-caption">// mascot.v2.6 — flux_dev</figcaption>
         </motion.figure>
       </div>
 

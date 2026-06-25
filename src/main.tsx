@@ -2,9 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
-import './styles/globals.css';
-import './styles/hero.css';
-import './styles/components.css';
+import './index.css';
 
 // --- GitHub Pages SPA-fallback bootstrap ---
 // 404.html (см. public/404.html) сохраняет в sessionStorage путь, на который

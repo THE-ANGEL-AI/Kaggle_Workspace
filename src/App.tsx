@@ -2,6 +2,8 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
+import { CursorGlow } from './components/CursorGlow';
+import { useLenis } from './hooks/useLenis';
 import { Home } from './pages/Home';
 import { News } from './pages/News';
 
@@ -13,9 +15,11 @@ const pageVariants = {
 
 export function App() {
   const location = useLocation();
+  useLenis();
 
   return (
     <>
+      <CursorGlow />
       <a className="skip-link" href="#main">Перейти к содержимому</a>
       <div className="bg-grid" aria-hidden="true" />
       <Nav />

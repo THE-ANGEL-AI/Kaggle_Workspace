@@ -1,96 +1,75 @@
+import { motion } from 'framer-motion';
+import { Copy, Check } from 'lucide-react';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 import type { ReactNode } from 'react';
 
-interface Cell {
-  comment: string;
-  code:  ReactNode;
-}
-
-const cells: Cell[] = [
-  {
-    comment: '# 0.  Скрипты из репозитория (или обновить, если уже склонировано)',
-    code: <>!git clone https://github.com/THE-ANGEL-AI/Kaggle_Workspace_FreeGPU.git || \<br />{'  '}git -C Kaggle_Workspace_FreeGPU pull</>,
-  },
-  {
-    comment: '# 1.  Окружение: uv + venv (Python 3.12) + torch cu130 + ComfyUI + Manager',
-    code: <>!python Kaggle_Workspace_FreeGPU/instal/instal_comfyui.py</>,
-  },
-  {
-    comment: '# 2.  Кастомные ноды + симлинки на модели из /kaggle/input',
-    code: <>!python Kaggle_Workspace_FreeGPU/instal/instal_castom_node.py</>,
-  },
-  {
-    comment: '# 3.  Запуск + Cloudflare-туннель + keep-alive кнопки',
-    code: <>%run Kaggle_Workspace_FreeGPU/instal/start.py</>,
-  },
+const cells: { comment: string; code: ReactNode }[] = [
+  { comment: '# 0.  Скрипты из репозитория', code: <>!git clone https://github.com/THE-ANGEL-AI/Kaggle_Workspace_FreeGPU.git || \<br />{'  '}git -C Kaggle_Workspace_FreeGPU pull</> },
+  { comment: '# 1.  Окружение: uv + venv + torch cu130 + ComfyUI', code: <>!python Kaggle_Workspace_FreeGPU/instal/instal_comfyui.py</> },
+  { comment: '# 2.  Кастомные ноды + симлинки на модели', code: <>!python Kaggle_Workspace_FreeGPU/instal/instal_castom_node.py</> },
+  { comment: '# 3.  Запуск + Cloudflare-туннель + keep-alive', code: <>%run Kaggle_Workspace_FreeGPU/instal/start.py</> },
 ];
 
-function TerminalCell({ cell }: { cell: Cell }) {
+function Cell({ cell }: { cell: typeof cells[0] }) {
   const [copied, copy] = useCopyToClipboard();
-
-  // Сырое текстовое представление ячейки для копирования.
   const raw = `${cell.comment}\n${stripTags(cell.code)}`;
 
   return (
-    <div className="terminal-cell">
-      <span className="prompt">{cell.comment}</span>
-      <div className="terminal-code">{cell.code}</div>
+    <div className="grid grid-cols-[1fr_auto] items-start gap-3 px-3.5 py-3 rounded-lg border border-transparent hover:border-cyan/15 hover:bg-cyan/3 transition-all">
+      <div>
+        <span className="block text-cyan font-bold text-sm">{cell.comment}</span>
+        <div className="mt-1 font-mono text-sm text-text whitespace-pre-wrap break-words">{cell.code}</div>
+      </div>
       <button
-        type="button"
-        className={`terminal-copy ${copied ? 'copied' : ''}`}
         onClick={() => copy(raw)}
-        aria-label="Скопировать ячейку в clipboard"
+        className="self-start font-mono text-[0.72rem] tracking-wide text-text-dim bg-white/4 border border-border-strong px-2.5 py-1.5 rounded-md hover:text-cyan hover:border-cyan/40 transition-all"
+        aria-label="Скопировать"
       >
-        {copied ? '✓ Скопировано' : '⧉ Copy'}
+        {copied ? <Check size={14} className="text-yellow" /> : <Copy size={14} />}
       </button>
     </div>
   );
 }
 
-/** Убирает React-узлы (без children.props.children) до плоской строки для clipboard. */
 function stripTags(node: ReactNode): string {
   if (node == null || typeof node === 'boolean') return '';
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) return node.map(stripTags).join('');
-  // React element
-  if (typeof node === 'object' && 'props' in node) {
-    return stripTags((node as { props: { children: ReactNode } }).props.children);
-  }
+  if (typeof node === 'object' && 'props' in node) return stripTags((node as { props: { children: ReactNode } }).props.children);
   return '';
 }
 
-/**
- * Quickstart — fake-terminal в стиле macOS (traffic lights).
- * Каждая «ячейка» копируется в clipboard одной кнопкой.
- */
 export function Quickstart() {
   return (
-    <section className="section" id="start" aria-labelledby="start-title">
-      <div className="section-header">
-        <span className="section-eyebrow">Быстрый старт</span>
-        <h2 id="start-title">Три ячейки — и ComfyUI работает</h2>
-        <p className="section-subtitle">
-          Включите в Kaggle-блокноте GPU T4 ×2 и интернет. Потом жмите Copy и вставляйте ячейки по порядку.
-        </p>
+    <section id="start" className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
+      <div className="text-center mb-14">
+        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">Быстрый старт</span>
+        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">Три ячейки — и ComfyUI работает</h2>
+        <p className="text-text-muted text-[1.08rem] max-w-[660px] mx-auto leading-relaxed">Включите GPU T4 ×2 и интернет. Жмите Copy и вставляйте ячейки по порядку.</p>
       </div>
 
-      <div className="terminal">
-        <div className="terminal-bar" aria-hidden="true">
-          <span className="dot red" />
-          <span className="dot yellow" />
-          <span className="dot green" />
-          <span className="title">kaggle-notebook.ipynb — ComfyUI setup</span>
-        </div>
-        <div className="terminal-body">
-          {cells.map((c, i) => (
-            <TerminalCell key={i} cell={c} />
+      <motion.div
+        className="max-w-[920px] mx-auto bg-glass border border-border rounded-[20px] overflow-hidden backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.55),0_0_40px_rgba(0,240,255,0.04)]"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {/* Terminal bar */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-white/3 border-b border-border">
+          {['#ff5f56', '#ffbd2e', '#27c93f'].map((c) => (
+            <span key={c} className="w-[11px] h-[11px] rounded-full" style={{ background: c }} />
           ))}
+          <span className="ml-2 flex-1 font-mono text-xs text-text-muted text-center">kaggle-notebook.ipynb — ComfyUI setup</span>
         </div>
-      </div>
 
-      <p className="section-subtitle" style={{ marginTop: '1.4rem' }}>
-        Можно и одной строкой: <code>%run .../instal/start.py</code> сам проверит окружение
-        и вызовет нужный установщик автоматически.
+        <div className="p-5 sm:p-7 font-mono text-sm leading-relaxed text-text space-y-1">
+          {cells.map((c, i) => <Cell key={i} cell={c} />)}
+        </div>
+      </motion.div>
+
+      <p className="mt-6 text-center text-text-muted text-[1.08rem]">
+        Можно и одной строкой: <code className="bg-cyan/8 border border-cyan/20 px-2 py-0.5 rounded-md text-cyan">%run .../instal/start.py</code>
       </p>
     </section>
   );

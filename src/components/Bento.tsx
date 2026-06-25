@@ -1,102 +1,49 @@
-import { motion, useMotionValue, useTransform, type MotionValue } from 'framer-motion';
-import { useRef, type ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { Rocket, Shield, Zap, Puzzle, Package, Link2, Globe } from 'lucide-react';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
-interface BentoCardProps {
-  icon: string;
-  title: string;
-  body: string;
-  /** Grid span (3 default; 2/4 also available). */
-  span?: 2 | 3 | 4;
-  children?: ReactNode;
-}
+const cards = [
+  { icon: Rocket, title: 'Запуск одной строкой', body: 'Три Python-скрипта в instal/: окружение, ноды, запуск. Через пару минут после старта — публичный URL.', stat: '~2 мин до URL', span: 3 },
+  { icon: Shield, title: 'Самовосстановление venv', body: 'Kaggle ломает venv при рестарте. Скрипты чинят за секунды — без переустановки torch.', stat: '99% идемпотентность', span: 3 },
+  { icon: Zap, title: 'torch cu130 под T4', body: 'Драйвер 580.x, нативный SDPA вместо нерабочего xformers на Turing.', span: 2 },
+  { icon: Puzzle, title: 'DisTorch2 на 2× GPU', body: 'ComfyUI-MultiGPU распределяет слои между двумя T4 и CPU.', span: 2 },
+  { icon: Package, title: 'Модели через симлинки', body: 'Flux2 GGUF и LTX 2.3 из /kaggle/input. Один раз скопировал — мгновенно.', span: 2 },
+  { icon: Link2, title: 'Публичный URL из ячейки', body: 'Cloudflare-туннель из блокнота. Кнопки: открыть, остановить, перезапустить. Keep-alive не даёт усыпить сессию.', span: 4 },
+  { icon: Globe, title: 'Публичные workflow', body: 'Flux2 GGUF, LTX 2.3 Director в workflows/ — готовые графы.', span: 2 },
+];
 
-/**
- * BentoCard — карточка с mouse-tracking 3D tilt.
- * Использует useMotionValue + useTransform для максимально
- * дешёвой трансформации без re-render на каждое движение мыши.
- */
-function BentoCard({ icon, title, body, span = 3, children }: BentoCardProps) {
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  // MotionValues для rotation. Следим за ними через motion.div style.
-  const mx: MotionValue<number> = useMotionValue(0.5);
-  const my: MotionValue<number> = useMotionValue(0.5);
-  const rotateX = useTransform(my, [0, 1], [6, -6]);
-  const rotateY = useTransform(mx, [0, 1], [-6, 6]);
-
-  return (
-    <motion.div
-      ref={ref}
-      className={`bento-card span-${span}`}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        mx.set((e.clientX - rect.left) / rect.width);
-        my.set((e.clientY - rect.top)  / rect.height);
-      }}
-      onMouseLeave={() => {
-        mx.set(0.5);
-        my.set(0.5);
-      }}
-      style={{ rotateX, rotateY, transformPerspective: 1000, transformStyle: 'preserve-3d' }}
-      transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-    >
-      <div className="bento-icon">{icon}</div>
-      <h3>{title}</h3>
-      <p>{body}</p>
-      {children}
-    </motion.div>
-  );
-}
-
-/**
- * BentoGrid — 6 ключевых модулей проекта.
- * Каждая карточка имеет mouse-tilt (3D rotation around center).
- */
 export function Bento() {
+  const reduced = useReducedMotion();
+
   return (
-    <section className="section" id="project" aria-labelledby="bento-title">
-      <div className="section-header">
-        <span className="section-eyebrow">Подробности по проекту</span>
-        <h2 id="bento-title">ComfyUI как пайплайн из шести модулей</h2>
-        <p className="section-subtitle">
-          Не одна библиотека — а рабочий конвейер: окружение, ноды, симлинки на модели,
-          распределение по двум GPU и публичный туннель. Каждый модуль идемпотентен.
-        </p>
+    <section id="project" className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
+      <div className="text-center mb-14">
+        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">Подробности</span>
+        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">ComfyUI как пайплайн из шести модулей</h2>
+        <p className="text-text-muted text-[1.08rem] max-w-[660px] mx-auto leading-relaxed">Не одна библиотека — а рабочий конвейер: окружение, ноды, симлинки, два GPU и туннель.</p>
       </div>
 
-      <div className="bento">
-        <BentoCard
-          icon="🚀"
-          title="Запуск одной строкой"
-          body="Три Python-скрипта в instal/: окружение, ноды, запуск. Через пару минут после старта получаете публичный URL на работающий ComfyUI."
-        >
-          <div className="stat">~2 мин до публичного URL</div>
-        </BentoCard>
+      <div className="grid grid-cols-6 gap-3 sm:gap-4">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          const span = c.span === 4 ? 'col-span-6 md:col-span-4' : c.span === 2 ? 'col-span-6 sm:col-span-3 md:col-span-2' : 'col-span-6 sm:col-span-3';
+          const Card = reduced ? 'div' : motion.div;
 
-        <BentoCard
-          icon="🛡️"
-          title="Самовосстановление venv"
-          body="Kaggle при рестарте сессии ломает venv (битый симлинк, слетевший +x). Скрипты ловят это и чинят автоматически за секунды — без переустановки torch."
-        >
-          <div className="stat">≈ 99% идемпотентность</div>
-        </BentoCard>
-
-        <BentoCard span={2} icon="⚡" title="torch cu130 под T4"
-          body="Драйвер 580.x, нативный SDPA вместо нерабочего на Turing xformers." />
-        <BentoCard span={2} icon="🧩" title="DisTorch2 на 2× GPU"
-          body="ComfyUI-MultiGPU распределяет слои между двумя T4 и CPU аккуратно." />
-        <BentoCard span={2} icon="📦" title="Модели через симлинки"
-          body="Flux2 GGUF и LTX 2.3 из /kaggle/input. Один раз скопировал датасет — дальше мгновенно." />
-
-        <BentoCard
-          span={4}
-          icon="🔗"
-          title="Публичный URL прямо из ячейки"
-          body="Cloudflare-туннель (trycloudflare.com) поднимается из блокнота без белого IP и без проброса портов. Под ячейкой появляются кнопки: открыть ComfyUI, остановить процесс, перезапустить с новым URL — ядро Kaggle при этом не перезапускается. Keep-alive не даёт Kaggle усыпить сессию через 40 минут бездействия."
-        />
-
-        <BentoCard span={2} icon="🌐" title="Публичные workflow"
-          body="Flux2 GGUF, LTX 2.3 Director в workflows/ — готовые графы." />
+          return (
+            <Card
+              key={c.title}
+              className={`${span} relative overflow-hidden rounded-[20px] p-5 sm:p-7 bg-glass border border-border backdrop-blur-xl hover:border-cyan/25 hover:shadow-[0_8px_40px_rgba(0,0,0,0.40),0_0_30px_rgba(0,240,255,0.08)] hover:-translate-y-1 transition-all duration-280`}
+              {...(reduced ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.2 }, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } })}
+            >
+              <Icon className="w-8 h-8 text-cyan mb-3" />
+              <h3 className="font-display font-bold text-[1.15rem] text-text-bright mb-1.5">{c.title}</h3>
+              <p className="text-text-muted text-sm leading-relaxed">{c.body}</p>
+              {c.stat && (
+                <div className="mt-4 font-mono text-xl font-extrabold text-cyan tracking-wide drop-shadow-[0_0_14px_var(--color-glow-cyan)]">{c.stat}</div>
+              )}
+            </Card>
+          );
+        })}
       </div>
     </section>
   );

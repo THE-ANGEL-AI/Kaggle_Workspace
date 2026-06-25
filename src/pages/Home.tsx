@@ -11,6 +11,8 @@ import { LiveStats } from '../components/LiveStats';
 import { NewsCard } from '../components/NewsCard';
 import { ArchitectureGraph } from '../components/ArchitectureGraph';
 import { GPUCostCalculator } from '../components/GPUCostCalculator';
+import { RepositoryShowcase } from '../components/RepositoryShowcase';
+import { AITerminal } from '../components/AITerminal';
 import { newsTeaser } from '../data/news';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Cpu, Cloud, Users, FlaskConical, Play, CheckCircle } from 'lucide-react';
@@ -239,6 +241,12 @@ export function Home() {
 
       {/* PHASE 8 — GPU Cost Calculator */}
       <GPUCostCalculator />
+
+      {/* PHASE 9 — Repository Showcase */}
+      <RepositoryShowcase />
+
+      {/* PHASE 10 — AI Terminal */}
+      <AITerminal />
 
       {/* Legacy Bento + Quickstart sections */}
       {/* Interactive Guide — replaces old Quickstart */}

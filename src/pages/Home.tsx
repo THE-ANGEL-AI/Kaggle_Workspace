@@ -17,6 +17,7 @@ import { GitHubIntegration } from '../components/GitHubIntegration';
 import { Roadmap } from '../components/Roadmap';
 import { Gallery } from '../components/Gallery';
 import { CommunitySection } from '../components/CommunitySection';
+import { SocialProof } from '../components/SocialProof';
 import { newsTeaser } from '../data/news';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Cpu, Cloud, Users, FlaskConical, Play, CheckCircle } from 'lucide-react';
@@ -263,6 +264,9 @@ export function Home() {
 
       {/* PHASE 15 — Community Section */}
       <CommunitySection />
+
+      {/* PHASE 16 — Social Proof */}
+      <SocialProof />
 
       {/* Legacy Bento + Quickstart sections */}
       {/* Interactive Guide — replaces old Quickstart */}

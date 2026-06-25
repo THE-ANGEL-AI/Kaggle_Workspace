@@ -14,6 +14,8 @@ import { GPUCostCalculator } from '../components/GPUCostCalculator';
 import { RepositoryShowcase } from '../components/RepositoryShowcase';
 import { AITerminal } from '../components/AITerminal';
 import { GitHubIntegration } from '../components/GitHubIntegration';
+import { Roadmap } from '../components/Roadmap';
+import { Gallery } from '../components/Gallery';
 import { newsTeaser } from '../data/news';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Cpu, Cloud, Users, FlaskConical, Play, CheckCircle } from 'lucide-react';
@@ -249,8 +251,14 @@ export function Home() {
       {/* PHASE 10 — AI Terminal */}
       <section id="terminal"><AITerminal /></section>
 
+      {/* PHASE 13 — Gallery */}
+      <Gallery />
+
       {/* PHASE 12 — Live GitHub Integration */}
       <GitHubIntegration />
+
+      {/* PHASE 14 — Roadmap */}
+      <Roadmap />
 
       {/* Legacy Bento + Quickstart sections */}
       {/* Interactive Guide — replaces old Quickstart */}

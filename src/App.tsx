@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Nav } from './components/Nav';
 import { Footer } from './components/Footer';
+import { AngelAssistant } from './components/AngelAssistant';
 import { CursorGlow } from './components/CursorGlow';
 import { useLenis } from './hooks/useLenis';
 import { Home } from './pages/Home';
@@ -20,6 +21,7 @@ export function App() {
   return (
     <>
       <CursorGlow />
+      <AngelAssistant />
       <a className="skip-link" href="#main">Перейти к содержимому</a>
       <div className="bg-grid" aria-hidden="true" />
       <Nav />

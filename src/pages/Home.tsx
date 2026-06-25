@@ -237,23 +237,23 @@ export function Home() {
       </StorySection>
 
       {/* PHASE 7 — Interactive Architecture */}
-      <ArchitectureGraph />
+      <section id="architecture"><ArchitectureGraph /></section>
 
       {/* PHASE 8 — GPU Cost Calculator */}
-      <GPUCostCalculator />
+      <section id="calculator"><GPUCostCalculator /></section>
 
       {/* PHASE 9 — Repository Showcase */}
-      <RepositoryShowcase />
+      <section id="repository"><RepositoryShowcase /></section>
 
       {/* PHASE 10 — AI Terminal */}
-      <AITerminal />
+      <section id="terminal"><AITerminal /></section>
 
       {/* Legacy Bento + Quickstart sections */}
       {/* Interactive Guide — replaces old Quickstart */}
       <InteractiveGuide />
-      <WorkflowDiagram />
+      <section id="pipeline"><WorkflowDiagram /></section>
 
-      <motion.div {...reveal}><Bento /></motion.div>
+      <motion.div id="features" {...reveal}><Bento /></motion.div>
       {/* Old Quickstart kept with id for anchor link */}
       <motion.div id="quickstart-all" {...reveal}><Quickstart /></motion.div>
 
@@ -280,9 +280,9 @@ export function Home() {
       </StorySection>
 
       {/* Legacy sections */}
-      <motion.div {...reveal}><WorkflowsShowcase /></motion.div>
+      <motion.div id="workflows" {...reveal}><WorkflowsShowcase /></motion.div>
       <motion.div {...reveal}><InstallStepper /></motion.div>
-      <motion.div {...reveal}><LiveStats /></motion.div>
+      <motion.div id="stats" {...reveal}><LiveStats /></motion.div>
 
       {/* ── Глава 6: Будущее ── */}
       <StorySection
@@ -325,7 +325,7 @@ export function Home() {
       </motion.section>
 
       {/* ── CTA ── */}
-      <motion.section className="max-w-[1200px] mx-auto px-4 sm:px-8 pb-16 sm:pb-20" {...reveal}>
+      <motion.section id="cta" className="max-w-[1200px] mx-auto px-4 sm:px-8 pb-16 sm:pb-20" {...reveal}>
         <div className="relative text-center bg-glass border border-border rounded-[28px] p-10 sm:p-16 overflow-hidden backdrop-blur-xl">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan/5 via-transparent to-violet/5 pointer-events-none" />
           <div className="relative">

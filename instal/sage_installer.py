@@ -230,7 +230,7 @@ def _install_package(sage_src, venv_python, logger):
 
 
 def _link_custom_node(sage_src, comfy_dir, logger):
-    """Создаёт симлинк SageAttention-T4 в custom_nodes."""
+    """Создаёт симлинк SageAttention-T4 в custom_nodes + init.py если надо."""
     sage_node_dir = os.path.join(comfy_dir, "custom_nodes", "SageAttention-T4")
     try:
         if os.path.islink(sage_node_dir):
@@ -245,6 +245,20 @@ def _link_custom_node(sage_src, comfy_dir, logger):
             logger.print("[*] ComfyUI node симлинк создан: SageAttention-T4")
         else:
             logger.print(f"[*] ComfyUI node dir существует: {sage_node_dir}")
+
+        # Fallback: если в склонированном репо нет __init__.py (старый коммит),
+        # создаём его прямо в symlink-пути, чтобы ComfyUI увидел ноду.
+        node_init = os.path.join(sage_node_dir, "__init__.py")
+        if not os.path.exists(node_init):
+            try:
+                with open(node_init, "w", encoding="utf-8") as f:
+                    f.write(
+                        '"""SageAttention-T4 ComfyUI custom node (auto-generated)."""\n'
+                        'from sageattn_t4_nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS\n'
+                    )
+                logger.print("[*] __init__.py создан (fallback)")
+            except OSError as e:
+                logger.print(f"[!] Не удалось создать __init__.py: {e}")
     except OSError as e:
         logger.print(f"[!] Symlink не удался ({e}) — нода не будет обнаружена")
 

@@ -52,14 +52,26 @@ def install(home_dir, venv_python, comfy_dir, logger):
     sage_ok = False
     sage_src = os.path.join(home_dir, SAGE_SRC_DIR)
 
-    # --- Шаг 0: уже установлен? ---
+    # --- Шаг 0: клонируем/обновляем репозиторий ВСЕГДА ---
+    # (даже если пакет уже установлен — чтобы подтянуть свежий код ноды)
+    if os.path.isdir(sage_src):
+        _ensure_fork_remote(sage_src, logger)
+        _update_repo(sage_src, logger)
+    else:
+        _clone_repo(sage_src, logger)
+
+    if not os.path.isdir(sage_src):
+        logger.print("[!] Репозиторий SageAttention не доступен — пропуск")
+        return False
+
+    # --- Шаг 0b: уже установлен? ---
     logger.print("[*] Проверяю SageAttention-SM75 (Turing)...")
     check = subprocess.run(
         [venv_python, "-c", "import sageattention"],
         capture_output=True, text=True, timeout=15)
     if check.returncode == 0:
         logger.print("[*] SageAttention уже установлен (пропуск)")
-        # Всё равно создаём/обновляем custom node прокси-пакет
+        # Всё равно обновляем custom node прокси-пакет (подхватит свежий код)
         _link_custom_node(sage_src, comfy_dir, logger)
         return True
 
@@ -70,17 +82,6 @@ def install(home_dir, venv_python, comfy_dir, logger):
         [venv_python, "-m", "pip", "install", "--upgrade",
          "setuptools", "wheel"],
         capture_output=True, text=True, timeout=120)
-
-    # --- Шаг 2: клонируем/обновляем репозиторий ---
-    if os.path.isdir(sage_src):
-        _ensure_fork_remote(sage_src, logger)
-        _update_repo(sage_src, logger)
-    else:
-        _clone_repo(sage_src, logger)
-
-    if not os.path.isdir(sage_src):
-        logger.print("[!] Репозиторий SageAttention не доступен — пропуск")
-        return False
 
     # --- Шаг 3: сборка CUDA-расширения ---
     logger.print("[*] Компилирую CUDA-ядро под sm_75 (это может занять 5-10 мин)...")

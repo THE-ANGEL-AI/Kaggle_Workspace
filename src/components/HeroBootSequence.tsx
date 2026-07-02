@@ -22,6 +22,15 @@ interface BootSequenceProps {
   onComplete?: () => void;
 }
 
+/**
+ * Boot-анимация при первом заходе на сайт (декоративная).
+ *
+ * PHASE 19 — a11y:
+ *  - `role="status"` + `aria-live="polite"` — screen reader проговорит последнюю строку
+ *  - Escape/Space/Enter пропускают анимацию
+ *  - `prefers-reduced-motion` обрабатывается на уровне родителя (Hero.tsx):
+ *    boot просто не запускается, onComplete зовётся сразу
+ */
 export function BootSequence({ onComplete }: BootSequenceProps) {
   const [lines, setLines] = useState<BootLine[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,6 +63,16 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
     }, line.duration);
   }, [currentIndex, onComplete]);
 
+  // Пропуск анимации — Escape / Space / Enter
+  const skip = useCallback(() => {
+    if (!mountedRef.current) return;
+    if (currentIndex >= bootLines.length) return; // уже завершено
+    setShowCursor(false);
+    setLines(bootLines.map((l) => ({ text: l.text, done: true })));
+    setCurrentIndex(bootLines.length);
+    safeTimeout(() => onComplete?.(), 50);
+  }, [currentIndex, onComplete]);
+
   useEffect(() => {
     const timer = setTimeout(addNextLine, currentIndex === 0 ? 400 : 150);
     return () => {
@@ -61,6 +80,17 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
       mountedRef.current = false;
     };
   }, [addNextLine, currentIndex]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        skip();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [skip]);
 
   // Cursor blink
   useEffect(() => {
@@ -72,7 +102,12 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
   }, [showCursor]);
 
   return (
-    <div className="font-mono text-xs sm:text-sm leading-relaxed space-y-0.5">
+    <div
+      className="font-mono text-xs sm:text-sm leading-relaxed space-y-0.5"
+      role="status"
+      aria-live="polite"
+      aria-label="Загрузка системы — нажмите Escape для пропуска"
+    >
       {lines.map((line, i) => (
         <div
           key={i}

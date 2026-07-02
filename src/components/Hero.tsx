@@ -1,9 +1,31 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { GitBranch, Zap, Sparkles, ChevronDown } from 'lucide-react';
-import { HeroScene } from '../scenes/HeroScene';
 import { BootSequence } from './HeroBootSequence';
 import { useMousePosition } from '../hooks/useMousePosition';
+
+// HeroScene (R3F + three.js, ~305 KB gzip) грузится отдельным чанком — иначе
+// главный bundle раздувается на 1 МБ. Suspense-обёртка нужна для ленивого children.
+const HeroScene = lazy(() =>
+  import('../scenes/HeroScene').then((m) => ({ default: m.HeroScene })),
+);
+
+/** Fallback пока грузится R3F-сцена: статичный радиальный glow в духе дизайна. */
+function HeroSceneFallback() {
+  return (
+    <div
+      className="absolute inset-0 z-0 pointer-events-none"
+      aria-hidden="true"
+      style={{
+        background: `
+          radial-gradient(ellipse 70% 60% at 30% 50%, rgba(0,245,255,0.10) 0%, transparent 60%),
+          radial-gradient(ellipse 50% 50% at 75% 60%, rgba(123,97,255,0.08) 0%, transparent 55%),
+          radial-gradient(ellipse 40% 40% at 50% 10%, rgba(168,85,247,0.06) 0%, transparent 50%)
+        `,
+      }}
+    />
+  );
+}
 
 /* ── Magnetic button wrapper ── */
 function MagneticButton({
@@ -89,8 +111,10 @@ export function Hero() {
         '--parallax-y': `${parallaxY}px`,
       } as React.CSSProperties}
     >
-      {/* 3D Scene Background */}
-      <HeroScene />
+      {/* 3D Scene Background — lazy-чанк (~305 KB gzip) */}
+      <Suspense fallback={<HeroSceneFallback />}>
+        <HeroScene />
+      </Suspense>
 
       {/* Ambient gradient overlay */}
       <div
@@ -127,7 +151,7 @@ export function Hero() {
               onClick={skipBoot}
               className="mt-4 font-mono text-[0.7rem] text-text-muted hover:text-text-dim transition-colors"
             >
-              [Press Tab to skip — or click here]
+              [Нажмите Esc / Space — или кликните, чтобы пропустить]
             </button>
           </div>
         </div>

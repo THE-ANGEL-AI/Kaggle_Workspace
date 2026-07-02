@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Hero } from '../components/Hero';
 import { StorySection } from '../components/StorySection';
@@ -6,21 +7,41 @@ import { Quickstart } from '../components/Quickstart';
 import { InteractiveGuide } from '../components/InteractiveGuide';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
 import { WorkflowsShowcase } from '../components/WorkflowsShowcase';
-import { InstallStepper } from '../components/InstallStepper';
-import { LiveStats } from '../components/LiveStats';
 import { NewsCard } from '../components/NewsCard';
-import { ArchitectureGraph } from '../components/ArchitectureGraph';
 import { GPUCostCalculator } from '../components/GPUCostCalculator';
-import { RepositoryShowcase } from '../components/RepositoryShowcase';
 import { AITerminal } from '../components/AITerminal';
-import { GitHubIntegration } from '../components/GitHubIntegration';
-import { Roadmap } from '../components/Roadmap';
-import { Gallery } from '../components/Gallery';
-import { CommunitySection } from '../components/CommunitySection';
-import { SocialProof } from '../components/SocialProof';
 import { newsTeaser } from '../data/news';
+import { LiquidDivider } from '../components/LiquidDivider';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Cpu, Cloud, Users, FlaskConical, Play, CheckCircle } from 'lucide-react';
+
+// ── Тяжёлые below-the-fold секции — lazy-чанки ──
+// Эти компоненты крупные (10–16 КБ + их данные) и не видны при первом рендере.
+// Lazy-загрузка отдаёт их отдельными JS-чанками → уменьшает TTI главной.
+const ArchitectureGraph   = lazy(() => import('../components/ArchitectureGraph').then((m) => ({ default: m.ArchitectureGraph })));
+const RepositoryShowcase  = lazy(() => import('../components/RepositoryShowcase').then((m) => ({ default: m.RepositoryShowcase })));
+const GitHubIntegration   = lazy(() => import('../components/GitHubIntegration').then((m) => ({ default: m.GitHubIntegration })));
+const Gallery             = lazy(() => import('../components/Gallery').then((m) => ({ default: m.Gallery })));
+const Roadmap             = lazy(() => import('../components/Roadmap').then((m) => ({ default: m.Roadmap })));
+const CommunitySection    = lazy(() => import('../components/CommunitySection').then((m) => ({ default: m.CommunitySection })));
+const SocialProof         = lazy(() => import('../components/SocialProof').then((m) => ({ default: m.SocialProof })));
+
+/* ── Skeleton fallback для lazy-секций ── */
+function SectionFallback({ height = '40vh' }: { height?: string }) {
+  return (
+    <div
+      className="flex items-center justify-center w-full"
+      style={{ minHeight: height }}
+      aria-label="Загрузка секции"
+    >
+      <div className="flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.25em] uppercase text-text-muted">
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse shadow-[0_0_8px_var(--color-glow-cyan)]" />
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan/60 animate-pulse [animation-delay:0.15s]" />
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan/30 animate-pulse [animation-delay:0.3s]" />
+      </div>
+    </div>
+  );
+}
 
 const reveal = {
   initial: { opacity: 0, y: 30 },
@@ -142,6 +163,7 @@ export function Home() {
       <Hero />
 
       {/* ── Глава 1: Что это? ── */}
+      <div id="project">
       <StorySection
         chapter={1}
         label="Глава 1"
@@ -160,6 +182,7 @@ export function Home() {
           открывают туннель. Результат — публичный URL с ComfyUI за пару минут.
         </p>
       </StorySection>
+      </div>
 
       {/* ── Глава 2: Почему это работает ── */}
       <StorySection
@@ -242,35 +265,68 @@ export function Home() {
       </StorySection>
 
       {/* PHASE 7 — Interactive Architecture */}
-      <section id="architecture"><ArchitectureGraph /></section>
+      <section id="architecture">
+        <Suspense fallback={<SectionFallback height="60vh" />}>
+          <ArchitectureGraph />
+        </Suspense>
+      </section>
 
       {/* PHASE 8 — GPU Cost Calculator */}
       <section id="calculator"><GPUCostCalculator /></section>
 
+      {/* PHASE 17 — Liquid divider (cyan, перед Repository) */}
+      <LiquidDivider accent="cyan" />
+
       {/* PHASE 9 — Repository Showcase */}
-      <section id="repository"><RepositoryShowcase /></section>
+      <section id="repository">
+        <Suspense fallback={<SectionFallback />}>
+          <RepositoryShowcase />
+        </Suspense>
+      </section>
+
+      {/* PHASE 17 — Liquid divider (violet, перед Terminal) */}
+      <LiquidDivider accent="violet" flip />
 
       {/* PHASE 10 — AI Terminal */}
       <section id="terminal"><AITerminal /></section>
 
-      {/* PHASE 13 — Gallery */}
-      <Gallery />
-
       {/* PHASE 12 — Live GitHub Integration */}
-      <GitHubIntegration />
+      <section id="github">
+        <Suspense fallback={<SectionFallback />}>
+          <GitHubIntegration />
+        </Suspense>
+      </section>
+
+      {/* PHASE 13 — Gallery */}
+      <Suspense fallback={<SectionFallback height="50vh" />}>
+        <Gallery />
+      </Suspense>
+
+      {/* PHASE 17 — Liquid divider (purple, перед Roadmap) */}
+      <LiquidDivider accent="purple" />
 
       {/* PHASE 14 — Roadmap */}
-      <Roadmap />
+      <Suspense fallback={<SectionFallback height="50vh" />}>
+        <Roadmap />
+      </Suspense>
 
       {/* PHASE 15 — Community Section */}
-      <CommunitySection />
+      <Suspense fallback={<SectionFallback />}>
+        <CommunitySection />
+      </Suspense>
+
+      {/* PHASE 17 — Liquid divider (green, перед SocialProof) */}
+      <LiquidDivider accent="green" flip />
 
       {/* PHASE 16 — Social Proof */}
-      <SocialProof />
+      <Suspense fallback={<SectionFallback height="60vh" />}>
+        <SocialProof />
+      </Suspense>
 
-      {/* Legacy Bento + Quickstart sections */}
-      {/* Interactive Guide — replaces old Quickstart */}
-      <InteractiveGuide />
+      {/* Interactive Guide — id="start" для якоря из Nav/Hero CTA */}
+      <section id="start">
+        <InteractiveGuide />
+      </section>
       <section id="pipeline"><WorkflowDiagram /></section>
 
       <motion.div id="features" {...reveal}><Bento /></motion.div>
@@ -301,8 +357,6 @@ export function Home() {
 
       {/* Legacy sections */}
       <motion.div id="workflows" {...reveal}><WorkflowsShowcase /></motion.div>
-      <motion.div {...reveal}><InstallStepper /></motion.div>
-      <motion.div id="stats" {...reveal}><LiveStats /></motion.div>
 
       {/* ── Глава 6: Будущее ── */}
       <StorySection

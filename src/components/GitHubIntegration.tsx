@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useGitHubData } from '../hooks/useGitHubData';
+import { Tooltip } from './ui/tooltip';
 import {
   Star,
   GitFork,
@@ -11,6 +12,7 @@ import {
   RefreshCw,
   ExternalLink,
   Clock,
+  TrendingUp,
 } from 'lucide-react';
 
 /* ── Stat card ── */
@@ -142,9 +144,107 @@ function getTimeAgo(date: Date): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+/* ── Activity Timeline (12 weeks) ── */
+function ActivityTimeline({
+  weeks,
+  loading,
+}: {
+  weeks: number[];
+  loading: boolean;
+}) {
+  const max = Math.max(1, ...weeks);
+  const total = weeks.reduce((s, n) => s + n, 0);
+  const lastWeek = weeks[weeks.length - 1] ?? 0;
+
+  return (
+    <div className="glass rounded-2xl border border-border backdrop-blur-xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={14} className="text-green" />
+          <span className="font-display font-bold text-sm text-text-bright">
+            Activity Timeline
+          </span>
+          <span className="font-mono text-[0.5rem] text-text-muted hidden sm:inline">
+            · последние 12 недель
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="font-mono text-[0.6rem] text-text-muted uppercase tracking-wider">
+              всего
+            </div>
+            <div className="font-mono text-sm font-bold text-green">
+              {loading ? '—' : total}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-mono text-[0.6rem] text-text-muted uppercase tracking-wider">
+              эта неделя
+            </div>
+            <div className="font-mono text-sm font-bold text-cyan">
+              {loading ? '—' : lastWeek}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        {loading ? (
+          <div className="h-32 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-green/30 border-t-green rounded-full animate-spin" />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-end gap-[3px] sm:gap-1 h-32">
+              {weeks.map((count, i) => {
+                const heightPct = (count / max) * 100;
+                const isLast = i === weeks.length - 1;
+                return (
+                  <div
+                    key={i}
+                    className="flex-1 flex flex-col items-center justify-end h-full group relative"
+                  >
+                    {/* Tooltip */}
+                    <div className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-bg-deep border border-cyan/30 rounded px-2 py-1 font-mono text-[0.55rem] text-cyan whitespace-nowrap pointer-events-none transition-opacity z-10">
+                      {count} {count === 1 ? 'коммит' : 'коммитов'}
+                    </div>
+                    <motion.div
+                      className={`w-full rounded-t-sm ${
+                        isLast ? 'bg-cyan' : 'bg-cyan/40 group-hover:bg-cyan'
+                      } transition-colors`}
+                      style={{
+                        height: `${Math.max(heightPct, count > 0 ? 6 : 0)}%`,
+                        boxShadow: isLast
+                          ? '0 0 12px var(--color-glow-cyan)'
+                          : undefined,
+                      }}
+                      initial={{ height: 0 }}
+                      whileInView={{ height: `${Math.max(heightPct, count > 0 ? 6 : 0)}%` }}
+                      viewport={{ once: true }}
+                      transition={{
+                        duration: 0.4,
+                        delay: i * 0.03,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between mt-2 font-mono text-[0.5rem] text-text-muted">
+              <span>12 нед. назад</span>
+              <span>сейчас</span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Main component ── */
 export function GitHubIntegration() {
-  const { repo, commits, contributors, release, loading, error, lastUpdated, refresh } =
+  const { repo, commits, contributors, release, weeklyActivity, loading, error, lastUpdated, refresh } =
     useGitHubData(180_000); // Refresh every 3 min
 
   return (
@@ -240,6 +340,9 @@ export function GitHubIntegration() {
             </div>
           </div>
 
+          {/* Activity Timeline (12 weeks) */}
+          <ActivityTimeline weeks={weeklyActivity} loading={loading} />
+
           {/* Repo description */}
           {repo?.description && (
             <p className="text-text-muted text-xs leading-relaxed text-center max-w-[580px] mx-auto">
@@ -329,6 +432,7 @@ export function GitHubIntegration() {
           </div>
 
           {/* Refresh button */}
+          <Tooltip text="GitHub API · 2 мин кеш">
           <button
             onClick={refresh}
             disabled={loading}
@@ -337,6 +441,7 @@ export function GitHubIntegration() {
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
             {loading ? 'Загрузка...' : 'Обновить'}
           </button>
+          </Tooltip>
         </div>
       </div>
 

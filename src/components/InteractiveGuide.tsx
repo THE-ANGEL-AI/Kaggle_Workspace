@@ -362,7 +362,7 @@ export function InteractiveGuide() {
         />
       </motion.div>
 
-      {/* Legacy Quickstart section linked */}
+      {/* Ссылка на Quickstart — там все команды одним списком */}
       <div className="mt-8 text-center">
         <p className="text-text-muted text-sm">
           Все команды одним списком — в секции{' '}

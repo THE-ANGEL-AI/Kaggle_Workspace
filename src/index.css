@@ -381,3 +381,84 @@ body {
   border-color: rgba(0, 245, 255, 0.6);
   background: rgba(0, 245, 255, 0.05);
 }
+
+/* ── Aurora background (PHASE 17) ── */
+/* Три «дышащих» пятна на глобальном фоне. 18-22s цикл — достаточно медленно,
+   чтобы не отвлекать от контента. На mobile ослабляем blur ради GPU. */
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(6vw, -4vh) scale(1.08); }
+  66%      { transform: translate(-4vw, 5vh) scale(0.95); }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%      { transform: translate(-7vw, 5vh) scale(0.92); }
+  75%      { transform: translate(5vw, -3vh) scale(1.05); }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(8vw, -6vh) scale(1.10); }
+}
+.aurora-anim-1 { animation: aurora-drift-1 22s ease-in-out infinite; }
+.aurora-anim-2 { animation: aurora-drift-2 18s ease-in-out infinite; }
+.aurora-anim-3 { animation: aurora-drift-3 26s ease-in-out infinite; }
+
+@media (width <= 768px) {
+  /* На мобиле blur дороже — ослабляем, пятна остаются красивыми */
+  .aurora-anim-1, .aurora-anim-2, .aurora-anim-3 {
+    filter: blur(60px);
+    opacity: 0.7;
+  }
+}
+
+/* ── Liquid divider (PHASE 17) ── */
+/* SVG-волна между секциями — мягкий переход вместо жёсткой границы. */
+.liquid-divider {
+  display: block;
+  width: 100%;
+  height: 80px;
+  pointer-events: none;
+}
+@media (width <= 640px) {
+  .liquid-divider { height: 50px; }
+}
+
+/* ── A11y — focus ring (PHASE 19) ── */
+/* Кастомное focus-visible: cyan-glow outline вместо дефолтного браузерного.
+   Применяется ко всем интерактивным элементам через `:focus-visible`. */
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 4px rgba(0, 245, 255, 0.18);
+}
+button:focus-visible,
+a:focus-visible {
+  /* Сбрасываем дефолтный outline у браузера — мы уже задали свой */
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+/* ── Skip link (PHASE 19) ── */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--color-cyan);
+  color: var(--color-bg-deep);
+  font-weight: 700;
+  border-radius: 6px;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ── Reduced motion override (PHASE 19) ── */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-anim-1, .aurora-anim-2, .aurora-anim-3 {
+    animation: none !important;
+  }
+}

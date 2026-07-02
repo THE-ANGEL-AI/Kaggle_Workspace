@@ -66,9 +66,31 @@ export interface GitHubState {
   commits: CommitData[];
   contributors: ContributorData[];
   release: ReleaseData | null;
+  /** Активность коммитов по неделям (последние 12 недель, от старых к новым) */
+  weeklyActivity: number[];
   loading: boolean;
   error: string | null;
   lastUpdated: Date | null;
+}
+
+/**
+ * Группирует список ISO-дат коммитов по неделям (последние 12 недель).
+ * Возвращает массив длиной 12: индекс 0 — самая старая неделя, 11 — текущая.
+ * Используется для Activity Timeline.
+ */
+function buildWeeklyActivity(commitDates: string[]): number[] {
+  const buckets = new Array(12).fill(0) as number[];
+  const now = Date.now();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+
+  for (const iso of commitDates) {
+    const t = new Date(iso).getTime();
+    const weeksAgo = Math.floor((now - t) / weekMs);
+    if (weeksAgo >= 0 && weeksAgo < 12) {
+      buckets[11 - weeksAgo] += 1;
+    }
+  }
+  return buckets;
 }
 
 /* ── Fetch helper ── */
@@ -100,6 +122,7 @@ export function useGitHubData(intervalMs = 120_000): GitHubState & { refresh: ()
     commits: [],
     contributors: [],
     release: null,
+    weeklyActivity: new Array(12).fill(0),
     loading: true,
     error: null,
     lastUpdated: null,
@@ -109,7 +132,7 @@ export function useGitHubData(intervalMs = 120_000): GitHubState & { refresh: ()
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const [repoData, commitsData, contributorsData, releaseData] = await Promise.all([
+      const [repoData, commitsData, contributorsData, releaseData, activityCommits] = await Promise.all([
         fetchJson<{
           stargazers_count: number;
           forks_count: number;
@@ -148,9 +171,14 @@ export function useGitHubData(intervalMs = 120_000): GitHubState & { refresh: ()
           html_url: string;
           body: string;
         } | ''>(`${BASE}/repos/${OWNER}/${REPO}/releases/latest`, `release-${REPO}`).catch(() => null as unknown as never),
+
+        // До 100 последних коммитов для Activity Timeline (12 недель)
+        fetchJson<
+          { commit: { author: { date: string } } }[]
+        >(`${BASE}/repos/${OWNER}/${REPO}/commits?per_page=100`, `activity-commits-${REPO}`),
       ]);
 
-      setState({
+setState({
         repo: {
           stars: repoData.stargazers_count,
           forks: repoData.forks_count,
@@ -183,6 +211,9 @@ export function useGitHubData(intervalMs = 120_000): GitHubState & { refresh: ()
               body: (releaseData as { body: string }).body,
             }
           : null,
+        weeklyActivity: buildWeeklyActivity(
+          activityCommits.map((c) => c.commit.author.date),
+        ),
         loading: false,
         error: null,
         lastUpdated: new Date(),

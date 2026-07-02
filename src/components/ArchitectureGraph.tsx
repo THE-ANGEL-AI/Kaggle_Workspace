@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   architectureNodes,
@@ -8,7 +8,8 @@ import {
   type ArchGroup,
 } from '../data/architecture';
 import { ArchitectureInfoPanel } from './ArchitectureInfoPanel';
-import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Layers } from 'lucide-react';
+import { Tooltip } from './ui/tooltip';
 
 /* ── Helpers ── */
 
@@ -298,10 +299,28 @@ export function ArchitectureGraph() {
     setZoom(0.65);
   }, []);
 
-  // Determine if mobile
-  const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < 768;
+  // Determine if mobile — с реактивностью на resize
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768,
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    onChange(mq);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // На мобиле группируем ноды по группам для вертикального списка
+  const nodesByGroup = useMemo(() => {
+    const map = new Map<string, ArchNode[]>();
+    for (const n of architectureNodes) {
+      if (!map.has(n.group)) map.set(n.group, []);
+      map.get(n.group)!.push(n);
+    }
+    return map;
   }, []);
 
   return (
@@ -322,39 +341,106 @@ export function ArchitectureGraph() {
 
       {/* Zoom controls */}
       <div className="flex items-center justify-center gap-2 mb-4">
-        <button
-          onClick={zoomOut}
-          className="flex items-center gap-1.5 font-mono text-[0.65rem] font-bold tracking-wider text-text-dim bg-glass border border-border px-3 py-1.5 rounded-lg hover:text-cyan hover:border-cyan/30 transition-all"
-          aria-label="Уменьшить"
-        >
-          <ZoomOut size={14} /> -
-        </button>
+        <Tooltip text="Уменьшить">
+          <button
+            onClick={zoomOut}
+            className="flex items-center gap-1.5 font-mono text-[0.65rem] font-bold tracking-wider text-text-dim bg-glass border border-border px-3 py-1.5 rounded-lg hover:text-cyan hover:border-cyan/30 transition-all"
+            aria-label="Уменьшить"
+          >
+            <ZoomOut size={14} /> -
+          </button>
+        </Tooltip>
         <span className="font-mono text-[0.6rem] text-text-muted tracking-wider w-12 text-center">
           {Math.round(zoom * 100)}%
         </span>
-        <button
-          onClick={zoomIn}
-          className="flex items-center gap-1.5 font-mono text-[0.65rem] font-bold tracking-wider text-text-dim bg-glass border border-border px-3 py-1.5 rounded-lg hover:text-cyan hover:border-cyan/30 transition-all"
-          aria-label="Увеличить"
-        >
-          <ZoomIn size={14} /> +
-        </button>
-        <button
-          onClick={resetZoom}
-          className="flex items-center gap-1.5 font-mono text-[0.65rem] font-bold tracking-wider text-text-dim bg-glass border border-border px-3 py-1.5 rounded-lg hover:text-cyan hover:border-cyan/30 transition-all"
-          aria-label="Сбросить"
-        >
-          <RotateCcw size={14} />
-        </button>
+        <Tooltip text="Увеличить">
+          <button
+            onClick={zoomIn}
+            className="flex items-center gap-1.5 font-mono text-[0.65rem] font-bold tracking-wider text-text-dim bg-glass border border-border px-3 py-1.5 rounded-lg hover:text-cyan hover:border-cyan/30 transition-all"
+            aria-label="Увеличить"
+          >
+            <ZoomIn size={14} /> +
+          </button>
+        </Tooltip>
+        <Tooltip text="100% масштаб">
+          <button
+            onClick={resetZoom}
+            className="flex items-center gap-1.5 font-mono text-[0.65rem] font-bold tracking-wider text-text-dim bg-glass border border-border px-3 py-1.5 rounded-lg hover:text-cyan hover:border-cyan/30 transition-all"
+            aria-label="Сбросить"
+          >
+            <RotateCcw size={14} />
+          </button>
+        </Tooltip>
       </div>
 
+      {/* Mobile: вертикальный список по группам (SVG-граф неудобен на узких экранах) */}
+      {isMobile && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-text-muted text-xs font-mono mb-2">
+            <Layers size={14} className="text-cyan" />
+            <span className="uppercase tracking-wider">{architectureGroups.length} групп · {architectureNodes.length} нодов</span>
+          </div>
+          {architectureGroups.map((group) => {
+            const groupNodes = nodesByGroup.get(group.id) ?? [];
+            return (
+              <div
+                key={group.id}
+                className="glass rounded-2xl border border-border p-4 backdrop-blur-xl"
+                style={{ borderColor: `${group.color}30` }}
+              >
+                <div
+                  className="flex items-center gap-2 mb-3 pb-2 border-b"
+                  style={{ borderColor: `${group.color}20` }}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{
+                      background: group.color,
+                      boxShadow: `0 0 8px ${group.color}`,
+                    }}
+                  />
+                  <span
+                    className="font-mono text-[0.6rem] font-bold tracking-[0.18em] uppercase"
+                    style={{ color: group.color }}
+                  >
+                    {group.label}
+                  </span>
+                  <span className="ml-auto font-mono text-[0.55rem] text-text-muted">
+                    {groupNodes.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {groupNodes.map((node) => (
+                    <button
+                      key={node.id}
+                      onClick={() => handleNodeClick(node)}
+                      className={`text-left flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                        selectedNode?.id === node.id
+                          ? 'border-cyan/40 bg-cyan/10'
+                          : 'border-border bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <span className="text-base shrink-0">{node.icon}</span>
+                      <span className="text-[0.7rem] font-medium text-text-bright leading-tight truncate">
+                        {node.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Graph + Info Panel layout */}
-      <div className="grid md:grid-cols-[1fr_320px] gap-6">
-        {/* SVG Graph */}
+      <div className={`grid gap-6 ${isMobile ? '' : 'md:grid-cols-[1fr_320px]'}`}>
+        {/* SVG Graph — только desktop */}
+        {!isMobile && (
         <div
           ref={containerRef}
           className="relative glass rounded-2xl border border-border backdrop-blur-xl overflow-auto"
-          style={{ maxHeight: isMobile ? '400px' : '600px' }}
+          style={{ maxHeight: '600px' }}
         >
           <svg
             viewBox={`0 0 ${GRAPH_W} ${GRAPH_H}`}
@@ -406,6 +492,7 @@ export function ArchitectureGraph() {
             ))}
           </svg>
         </div>
+        )}
 
         {/* Info Panel */}
         <div className="md:w-[320px] shrink-0">

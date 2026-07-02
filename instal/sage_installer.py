@@ -230,37 +230,38 @@ def _install_package(sage_src, venv_python, logger):
 
 
 def _link_custom_node(sage_src, comfy_dir, logger):
-    """Создаёт симлинк SageAttention-T4 в custom_nodes + init.py если надо."""
-    sage_node_dir = os.path.join(comfy_dir, "custom_nodes", "SageAttention-T4")
-    try:
-        if os.path.islink(sage_node_dir):
-            if os.readlink(sage_node_dir) != sage_src:
-                os.unlink(sage_node_dir)
-                os.symlink(sage_src, sage_node_dir)
-                logger.print("[*] ComfyUI node symlink обновлён: SageAttention-T4")
-            else:
-                logger.print("[*] ComfyUI node уже в custom_nodes: SageAttention-T4")
-        elif not os.path.exists(sage_node_dir):
-            os.symlink(sage_src, sage_node_dir)
-            logger.print("[*] ComfyUI node симлинк создан: SageAttention-T4")
-        else:
-            logger.print(f"[*] ComfyUI node dir существует: {sage_node_dir}")
+    """Создаёт прокси-пакет SageAttention-T4 в custom_nodes.
 
-        # Fallback: если в склонированном репо нет __init__.py (старый коммит),
-        # создаём его прямо в symlink-пути, чтобы ComfyUI увидел ноду.
-        node_init = os.path.join(sage_node_dir, "__init__.py")
-        if not os.path.exists(node_init):
-            try:
-                with open(node_init, "w", encoding="utf-8") as f:
-                    f.write(
-                        '"""SageAttention-T4 ComfyUI custom node (auto-generated)."""\n'
-                        'from sageattn_t4_nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS\n'
-                    )
-                logger.print("[*] __init__.py создан (fallback)")
-            except OSError as e:
-                logger.print(f"[!] Не удалось создать __init__.py: {e}")
+    Вместо symlink'а всего репо (ComfyUI/Python не всегда корректно
+    читает __init__.py через симлинк) создаём маленькую папку с
+    __init__.py, который реимпортирует ноды из sageattn_t4_nodes.
+    """
+    sage_node_dir = os.path.join(comfy_dir, "custom_nodes", "SageAttention-T4")
+
+    # Удаляем старый симлинк если был
+    if os.path.islink(sage_node_dir) or os.path.lexists(sage_node_dir):
+        try:
+            os.unlink(sage_node_dir)
+        except OSError:
+            pass
+
+    try:
+        os.makedirs(sage_node_dir, exist_ok=True)
+        init_py = os.path.join(sage_node_dir, "__init__.py")
+        # Экранируем путь для Python-строки (экранируем обратные слеши)
+        sage_src_esc = sage_src.replace("\\", "\\\\")
+        with open(init_py, "w", encoding="utf-8") as f:
+            f.write(
+                '"""SageAttention-T4 ComfyUI custom node (proxy)."""\n'
+                'import sys, os\n'
+                f'_sage_path = r"{sage_src_esc}"\n'
+                'if _sage_path not in sys.path:\n'
+                '    sys.path.insert(0, _sage_path)\n'
+                'from sageattn_t4_nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS\n'
+            )
+        logger.print(f"[*] ComfyUI node создан: SageAttention-T4 → {sage_src}")
     except OSError as e:
-        logger.print(f"[!] Symlink не удался ({e}) — нода не будет обнаружена")
+        logger.print(f"[!] Не удалось создать папку ноды ({e})")
 
 
 def inject_into_workflows(comfy_dir, logger):

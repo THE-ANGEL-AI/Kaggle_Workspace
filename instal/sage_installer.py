@@ -95,6 +95,12 @@ def install(home_dir, venv_python, comfy_dir, logger):
         _log_build_failure(result, logger)
         return False
 
+    # --- Шаг 4b: установка triton (нужен для sageattention/triton/*.py) ---
+    logger.print("[*] Устанавливаю triton (зависимость sageattention)...")
+    subprocess.run(
+        [venv_python, "-m", "pip", "install", "triton"],
+        capture_output=True, text=True, timeout=120)
+
     # --- Шаг 5: установка пакета ---
     sage_ok = _install_package(sage_src, venv_python, logger)
     if not sage_ok:

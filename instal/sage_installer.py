@@ -59,6 +59,8 @@ def install(home_dir, venv_python, comfy_dir, logger):
         capture_output=True, text=True, timeout=15)
     if check.returncode == 0:
         logger.print("[*] SageAttention уже установлен (пропуск)")
+        # Всё равно создаём/обновляем custom node прокси-пакет
+        _link_custom_node(sage_src, comfy_dir, logger)
         return True
 
     # --- Шаг 1: build-зависимости ---

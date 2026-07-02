@@ -95,13 +95,7 @@ def install(home_dir, venv_python, comfy_dir, logger):
         _log_build_failure(result, logger)
         return False
 
-    # --- Шаг 4b: установка triton (нужен для sageattention/triton/*.py) ---
-    logger.print("[*] Устанавливаю triton (зависимость sageattention)...")
-    subprocess.run(
-        [venv_python, "-m", "pip", "install", "triton"],
-        capture_output=True, text=True, timeout=120)
-
-    # --- Шаг 5: установка пакета ---
+    # --- Шаг 5: установка пакета (triton подтянется из install_requires) ---
     sage_ok = _install_package(sage_src, venv_python, logger)
     if not sage_ok:
         logger.print("[!] Fallback: split-cross-attention (без SageAttention)")
@@ -210,16 +204,16 @@ def _log_build_failure(result, logger):
 
 
 def _install_package(sage_src, venv_python, logger):
-    """Устанавливает собранный пакет в venv."""
+    """Устанавливает собранный пакет в venv (+ triton из install_requires)."""
     logger.print("[*] CUDA kernel compiled, устанавливаю пакет...")
     install = subprocess.run(
-        [venv_python, "-m", "pip", "install", "--no-build-isolation",
-         "--no-deps", "."],
+        [venv_python, "-m", "pip", "install", "--no-build-isolation", "."],
         cwd=sage_src,
         capture_output=True, text=True, timeout=120)
     for line in (install.stdout or "").split("\n")[-10:]:
         logger.print(f"  {line}")
 
+    # Проверяем установку
     verify = subprocess.run(
         [venv_python, "-c", "import sageattention"],
         capture_output=True, text=True, timeout=15)
@@ -227,8 +221,11 @@ def _install_package(sage_src, venv_python, logger):
         logger.print("[OK] SageAttention-SM75 installed!")
         return True
 
-    logger.print(f"[!] Пакет установлен, но не импортируется: "
-                 f"{verify.stderr.strip()[:200]}")
+    # Полная ошибка импорта (все строки, без усечения)
+    err_lines = (verify.stderr or "").strip().split("\n")
+    logger.print(f"[!] Пакет не импортируется ({len(err_lines)} строк ошибки):")
+    for line in err_lines:
+        logger.print(f"  ⛔ {line}")
     return False
 
 

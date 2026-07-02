@@ -43,6 +43,9 @@ def generate_id(workflow: dict) -> str:
 def find_model_connections(workflow: dict) -> List[Tuple[str, str, int]]:
     connections = []
     for node_id, node_data in workflow.items():
+        # Skip non-dict entries (strings, metadata, etc.)
+        if not isinstance(node_data, dict):
+            continue
         # Only inject before known consumer nodes (samplers, guiders)
         target_class = node_data.get('class_type', '')
         if MODEL_CONSUMERS and target_class not in MODEL_CONSUMERS:
@@ -90,10 +93,31 @@ def inject_sageattn(workflow: dict):
     return workflow, injected
 
 
+def _normalize_workflow(data: dict) -> dict:
+    """Приводит workflow к плоскому dict-формату {id: node, ...}.
+
+    Новые ComfyUI могут хранить ноды в 'nodes' массиве,
+    а старые — как плоский dict. Нормализуем оба варианта.
+    """
+    # Если есть массив 'nodes' — конвертируем в плоский dict
+    if "nodes" in data and isinstance(data["nodes"], list):
+        flat = {}
+        for node in data["nodes"]:
+            if isinstance(node, dict) and "id" in node:
+                flat[str(node["id"])] = node
+        return flat
+    # Уже плоский формат — возвращаем как есть
+    return data
+
+
 def inject_file(filepath: str, output_path: str = None) -> int:
     with open(filepath, 'r', encoding='utf-8') as f:
-        workflow = json.load(f)
+        data = json.load(f)
+    if not isinstance(data, dict):
+        print(f'  skip {filepath}: top-level is not a dict')
+        return 0
 
+    workflow = _normalize_workflow(data)
     workflow, count = inject_sageattn(workflow)
 
     if count == 0:

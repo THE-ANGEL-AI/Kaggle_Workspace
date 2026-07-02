@@ -119,9 +119,10 @@ class ComfyLauncher:
             self._check_git_updates()
             self._check_files()
             self._ensure_cloudflared()
-            # SageAttention-SM75 пропускаем — он НЕ работает с GGUF моделями
-            # (llama.cpp бэкенд, не диффузионный attention).
-            # Скорость генерации — через настройки ComfyUI/GGUF ноды.
+            # SageAttention-SM75 — кастомный CUDA-кернел внимания для T4
+            # (работает с диффузионными моделями, НЕ с GGUF/llama.cpp).
+            # Собирается из исходников — требуется ~5-10 мин на компиляцию.
+            self._install_sage_attention()
             self._start_comfy()
             self._wait_for_port()
             self._start_tunnel()
@@ -144,7 +145,7 @@ class ComfyLauncher:
     # 1. Убиваем старые процессы и чистим блокировки
     # ------------------------------------------------------------------
     def _cleanup_old(self):
-        t0 = self._log_step("Шаг 1/6: Очистка старых процессов и блокировок")
+        t0 = self._log_step("Шаг 1/7: Очистка старых процессов и блокировок")
         total_killed = 0
         for pat in ("main.py", "comfyui", "cloudflared"):
             try:
@@ -182,7 +183,7 @@ class ComfyLauncher:
     # 1b. Проверка обновлений из git-репозитория
     # ------------------------------------------------------------------
     def _check_git_updates(self):
-        t0 = self._log_step("Шаг 2/6: Проверка обновлений скриптов (git)")
+        t0 = self._log_step("Шаг 2/7: Проверка обновлений скриптов (git)")
 
         try:
             result = subprocess.run(
@@ -254,7 +255,7 @@ class ComfyLauncher:
     # 2. Проверка файлов и окружения
     # ------------------------------------------------------------------
     def _check_files(self):
-        t0 = self._log_step("Шаг 3/6: Проверка файлов и окружения")
+        t0 = self._log_step("Шаг 3/7: Проверка файлов и окружения")
 
         # --- venv ---
         self.logger.print("  ── Проверка Python-окружения ──")
@@ -502,7 +503,7 @@ class ComfyLauncher:
     # 3. cloudflared
     # ------------------------------------------------------------------
     def _ensure_cloudflared(self):
-        t0 = self._log_step("Шаг 4/6: Cloudflared (туннель)")
+        t0 = self._log_step("Шаг 4/7: Cloudflared (туннель)")
 
         url = ("https://github.com/cloudflare/cloudflared/releases/latest/"
                "download/cloudflared-linux-amd64")
@@ -535,8 +536,10 @@ class ComfyLauncher:
         """Устанавливает SageAttention-SM75-path в venv + custom node.
 
         ВНИМАНИЕ: НЕ РАБОТАЕТ С GGUF-МОДЕЛЯМИ (llama.cpp бэкенд).
-        Оставлен для справки — вызывать только для диффузионных моделей (SD/SDXL/Flux).
+        Только для диффузионных моделей (SD/SDXL/Flux).
         """
+        t0 = self._log_step("Шаг 5/7: SageAttention-SM75 (Turing T4 CUDA kernel)",
+                            status="⚙️ Собираю SageAttention-SM75...")
         try:
             self.sage_ok = sage_installer.install(
                 home_dir=ke.HOME_DIR,
@@ -547,10 +550,16 @@ class ComfyLauncher:
             if self.sage_ok:
                 self.logger.print("  → SageAttention-SM75 active — "
                                   "attention через кастомную ноду T4")
+                # Инжектим ноду SageAttentionT4_Apply в workflow
+                sage_installer.inject_into_workflows(ke.COMFY_DIR, self.logger)
+            else:
+                self.logger.print("  → SageAttention не установлен — "
+                                  "фолбэк на torch SDPA")
         except Exception as e:
             self.sage_ok = False
             self.logger.print(f"  → SageAttention: ошибка установки ({e}), "
                               "пропуск — SDPA")
+        self._log_elapsed(t0)
 
     # ------------------------------------------------------------------
     # 5. Запуск ComfyUI

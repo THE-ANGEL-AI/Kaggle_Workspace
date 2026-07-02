@@ -60,7 +60,7 @@ export const architectureNodes: ArchNode[] = [
   // ── Pages ──
   { id: 'home',    label: 'Home.tsx',    group: 'pages',     icon: '🏠', x: 200, y: 230,
     description: 'Главная страница',
-    details: 'Собирает 11 секций: Hero → StorySection × 6 → InteractiveGuide → WorkflowDiagram → Bento → Quickstart → WorkflowsShowcase → InstallStepper → LiveStats → News → CTA. Каждая секция — отдельный компонент с scroll-анимациями.',
+    details: 'Собирает секции: Hero → StorySection × 6 → InteractiveGuide → WorkflowDiagram → Bento → Quickstart → WorkflowsShowcase → News → CTA. Каждая секция — отдельный компонент с scroll-анимациями. Тяжёлые блоки (Architecture/Repository/GitHub/Gallery/Roadmap/Community/SocialProof) — lazy-чанки через React.lazy + Suspense.',
     tech: ['Framer Motion', 'React Router'] },
   { id: 'news',    label: 'News.tsx',    group: 'pages',     icon: '📰', x: 800, y: 230,
     description: 'Лента обновлений',
@@ -108,14 +108,6 @@ export const architectureNodes: ArchNode[] = [
     description: 'Показ workflow',
     details: '3 карточки (Flux2 GGUF, LTX 2.3, TTS) с SVG-превью. Анимированные градиенты, вращающиеся круги, пульсирующие волны.',
     tech: ['Framer Motion', 'SVG animations'] },
-  { id: 'stepper',     label: 'InstallStepper.tsx', group: 'components', icon: '📌', x: 250, y: 600,
-    description: 'Пошаговый установщик',
-    details: '3 шага с иконками, описанием и таймингом. Кнопка "Анимировать шаги" для последовательного раскрытия. Step-карты с hover glow.',
-    tech: ['Framer Motion', 'lucide-react'] },
-  { id: 'stats',       label: 'LiveStats.tsx',    group: 'components', icon: '📊', x: 450, y: 600,
-    description: 'Live дашборд',
-    details: '4 анимированные плитки (GPU hours, идемпотентность, этапы, восстановление). Цифры обновляются каждые 1.8s. Групповой scale-пульс.',
-    tech: ['Framer Motion', 'lucide-react'] },
   { id: 'story',       label: 'StorySection.tsx',  group: 'components', icon: '📜', x: 650, y: 600,
     description: 'Scroll-сторителлинг',
     details: 'Переиспользуемый компонент-обёртка. Parallax glow bg, scrollYProgress, textY/bgY/opacity transforms. Номер главы (01-06) с декоративным stroke. Gradient accent для заголовка.',
@@ -128,8 +120,16 @@ export const architectureNodes: ArchNode[] = [
   // ── Scenes ──
   { id: 'heroscene',   label: 'HeroScene.tsx',   group: 'scenes',    icon: '🌌', x: 200, y: 740,
     description: '3D-сцена Hero',
-    details: 'Three.js / R3F: AI Core (икосаэдр), 2× GPU, нейросеть (3-слойная), парящие орбы, data streams, кольца. Camera parallax по мыши. FBO-частицы.',
+    details: 'Three.js / R3F: AI Core (икосаэдр), 2× GPU, нейросеть (3-слойная), парящие орбы, data streams, кольца. Camera parallax по мыши. FBO-частицы. **Lazy-чанк** (грузится после монтирования Hero).',
     tech: ['Three.js', '@react-three/fiber', '@react-three/drei'] },
+  { id: 'aurora',      label: 'Aurora.tsx',      group: 'scenes',    icon: '🌌', x: 400, y: 740,
+    description: 'Aurora-фон (PHASE 17)',
+    details: 'Глобальный «воздух»: 3 дышащих радиальных пятна (cyan/violet/magenta) через CSS keyframes (18-26s). mix-blend-mode: screen. SVG-noise grain. pointer-events: none. prefers-reduced-motion → анимация отключена.',
+    tech: ['CSS animations', 'mix-blend-mode'] },
+  { id: 'liquid',      label: 'LiquidDivider.tsx', group: 'components', icon: '🌊', x: 600, y: 740,
+    description: 'Liquid-разделитель (PHASE 17)',
+    details: 'SVG с двумя морфящимися <path> через SMIL <animate>. 4 цветовых акцента (cyan/violet/purple/green). flip для чередования. Pure CSS/SMIL — без JS-циклов.',
+    tech: ['SVG SMIL', 'CSS'] },
 
   // ── Hooks ──
   { id: 'uselenis',        label: 'useLenis.ts',        group: 'hooks',     icon: '🔄', x: 700, y: 740,
@@ -170,6 +170,7 @@ export const architectureEdges: ArchEdge[] = [
   { from: 'app', to: 'nav', label: 'renders' },
   { from: 'app', to: 'footer', label: 'renders' },
   { from: 'app', to: 'cursor', label: 'renders' },
+  { from: 'app', to: 'aurora', label: 'fixed bg' },
   { from: 'app', to: 'home', label: 'route "/"' },
   { from: 'app', to: 'news', label: 'route "/news"' },
 
@@ -181,8 +182,7 @@ export const architectureEdges: ArchEdge[] = [
   { from: 'home', to: 'guide', label: 'renders' },
   { from: 'home', to: 'diagram', label: 'renders' },
   { from: 'home', to: 'workflows', label: 'renders' },
-  { from: 'home', to: 'stepper', label: 'renders' },
-  { from: 'home', to: 'stats', label: 'renders' },
+  { from: 'home', to: 'liquid', label: '× 4 dividers' },
   { from: 'home', to: 'newscard', label: 'uses' },
 
   // Hero → children
@@ -199,9 +199,9 @@ export const architectureEdges: ArchEdge[] = [
   { from: 'cursor', to: 'usemouse', label: 'uses' },
   { from: 'bento', to: 'usereduced', label: 'uses' },
   { from: 'story', to: 'usereduced', label: 'uses' },
+  { from: 'aurora', to: 'usereduced', label: 'uses' },
   { from: 'quickstart', to: 'usecopy', label: 'uses' },
   { from: 'guide', to: 'usecopy', label: 'uses' },
-  { from: 'stepper', to: 'usereduced', label: 'uses' },
 
   // App → hooks
   { from: 'app', to: 'uselenis', label: 'initializes' },

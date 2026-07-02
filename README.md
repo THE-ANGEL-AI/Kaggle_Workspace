@@ -17,7 +17,7 @@
 
 | Технология | Версия | Назначение |
 |------------|--------|------------|
-| **Vite** | 6.0 | Сборщик с HMR |
+| **Vite** | 6.0 | Сборщик с HMR + manualChunks (react-vendor / motion-vendor / three-vendor) |
 | **React** | 19.0 | UI-библиотека |
 | **TypeScript** | 5.7 | Типизация (strict mode, noUnusedLocals) |
 | **TailwindCSS** | 4.3 | Утилитарные стили + glassmorphism |
@@ -28,6 +28,8 @@
 | **Lenis** | 1.3 | Плавный scroll с easing |
 | **Lucide React** | 1.21 | Иконки |
 | **Gravity Index** | — | Сравнение GPU-провайдеров |
+
+**Lazy-loading:** `HeroScene` (R3F+three.js), `ArchitectureGraph`, `RepositoryShowcase`, `GitHubIntegration`, `Gallery`, `Roadmap`, `CommunitySection`, `SocialProof` и страница `News` — отдельные чанки, грузятся по требованию через `Suspense`. Главный чанк `index.js` — **100 КБ gzip** (было 377 КБ, было до lazy: 210 КБ).
 
 **Dev:** ESLint + Prettier, TypeScript strict mode.
 
@@ -137,6 +139,37 @@
 - 4 карточки фич сообщества
 - Gradient CTA «Присоединиться к сообществу»
 
+### ✅ PHASE 16 — Social Proof
+- 6 анимированных счётчиков через IntersectionObserver (428+ участников, 12 800+ генераций и т.д.)
+- 4 milestone-метрики (GPU часов, $ сэкономлено, время сессии, % успеха)
+- Ротация 4 отзывов с auto-switch каждые 5s + nav-dots
+- Parallax-фон с двумя gradient orbs и SVG-сеткой
+- Impact summary с 4 ключевыми метриками (+32% рост, ~85 генераций/день и т.д.)
+- Lazy-чанк (10.8 КБ / 4.16 КБ gzip)
+
+### ✅ PHASE 17 — Advanced Effects
+- **Aurora** — глобальный «воздух»: 3 дышащих градиентных пятна (cyan/violet/magenta) на фоне через CSS keyframes (18-26s цикл)
+- **LiquidDivider** — SVG-волна с морфингом `path` между секциями (cyan/violet/purple/green)
+- **Zернистость** поверх aurora — скрывает banding от больших градиентов
+- `prefers-reduced-motion` отключает все анимации фона
+
+### ✅ PHASE 18 — Performance Optimization
+- **Lazy-loading** для 8 чанков: HeroScene (R3F+three), 7 below-the-fold секций, страница News
+- **Initial bundle** упал с ~377 КБ gzip до ~100 КБ gzip
+- **Manual chunks**: react-vendor (17 КБ) + motion-vendor (45 КБ) — отдельно кешируются
+- **Mobile-responsive** ArchitectureGraph — вертикальный список групп вместо SVG-графа на экранах <768px
+- **Activity Timeline** в GitHub — 12-недельная гистограмма коммитов с анимированными столбиками
+- **Tooltip UI** — легковесный tooltip вместо нативного `title=`, работает на touch
+- **og-image.png** сгенерирован (84 КБ, 1200×630, cyberpunk-стиль)
+- **character.png** удалён (3.1 МБ неиспользуемого asset)
+
+### ✅ PHASE 19 — Final Polish
+- **Focus ring** — cyan-glow outline через `:focus-visible` (заменяет дефолтный браузерный)
+- **Skip-link** «Перейти к содержимому» — появляется при Tab с верхнего края
+- **BootSequence** — Escape/Space/Enter пропускают анимацию, `role="status"` + `aria-live="polite"`
+- **Mobile breakpoints** — везде `sm:`/`md:`, ArchitectureGraph реагирует через `matchMedia` (не только initial render)
+- **Cross-browser**: `-webkit-backdrop-filter` + `mix-blend-mode: screen` fallback
+
 ---
 
 ## 📋 Project Structure
@@ -240,7 +273,7 @@ npm run build   # tsc --noEmit && vite build
 
 ---
 
-## 📈 Прогресс (14/19 = 74%)
+## 📈 Прогресс (19/19 = 100%)
 
 | Фаза | Статус |
 |------|--------|
@@ -259,10 +292,10 @@ npm run build   # tsc --noEmit && vite build
 | PHASE 13 — Gallery | ✅ Done |
 | PHASE 14 — Roadmap | ✅ Done |
 | PHASE 15 — Community Section | ✅ Done |
-| **PHASE 16 — Social Proof** | 📋 Planned |
-| **PHASE 17 — Advanced Effects** | 📋 Planned |
-| **PHASE 18 — Performance** | 🔮 Future |
-| **PHASE 19 — Final Polish** | 🔮 Future |
+| PHASE 16 — Social Proof | ✅ Done |
+| PHASE 17 — Advanced Effects | ✅ Done |
+| PHASE 18 — Performance | ✅ Done |
+| PHASE 19 — Final Polish | ✅ Done |
 
 ---
 

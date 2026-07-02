@@ -212,12 +212,14 @@
 
 ## PHASE 16 — Social Proof
 
-* [ ] Animated counters
-* [ ] User statistics
-* [ ] Generated projects counter
-* [ ] Downloads counter
-* [ ] Community members counter
-* [ ] Engagement metrics
+* [x] Animated counters (IntersectionObserver + RAF, 6 шт)
+* [x] User statistics (428+ участников)
+* [x] Generated projects counter (12 800+ генераций)
+* [x] Downloads counter (1500+ клонирований)
+* [x] Community members counter (counter #1 в списке)
+* [x] Engagement metrics (+32% рост, 4.9★ рейтинг, 5s auto-rotate отзывов)
+* [x] Parallax background (gradient orbs + SVG grid)
+* [x] Lazy-чанк (10.8 КБ / 4.16 КБ gzip)
 
 ---
 

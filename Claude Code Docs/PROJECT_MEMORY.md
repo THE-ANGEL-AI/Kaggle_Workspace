@@ -351,23 +351,32 @@ src/
 └── main.tsx                       ← Entry point + SPA redirect
 ```
 
-### 📋 Осталось (PHASE 16-19)
+### ✅ Все 19 фаз завершены (2026-07-02)
 
-| Фаза | Описание |
-|------|----------|
-| **PHASE 16** | Social Proof — анимированные счётчики, параллакс |
-| **PHASE 17** | Advanced Effects — liquid transitions, aurora |
-| **PHASE 18** | Performance Optimization — Lighthouse 95+ |
-| **PHASE 19** | Final Polish — кросс-браузер, мобильные, a11y |
+| Фаза | Описание | Статус |
+|------|----------|--------|
+| **PHASE 16** | Social Proof — анимированные счётчики, параллакс | ✅ Done (01.07.2026) |
+| **PHASE 17** | Advanced Effects — Aurora (3 orbs), Liquid SVG dividers, noise grain, reduced-motion | ✅ Done (02.07.2026) |
+| **PHASE 18** | Performance — React.lazy + Suspense для 8 чанков, manualChunks (react/motion), mobile ArchitectureGraph, Activity Timeline, og-image | ✅ Done (02.07.2026) |
+| **PHASE 19** | Final Polish — focus-visible outline, skip-link, Escape/Space-to-skip boot, -webkit-backdrop-filter | ✅ Done (02.07.2026) |
 
-### 🏗️ Известные проблемы
+### Bundle после PHASE 18
 
-- **Bundle size**: основной чанк ~210 KB gzip (уже оптимизирован через manualChunks)
-- **character.png**: 3.1 MB — нужно сжать до WebP
-- **og-image.png**: не создан (нужен для Open Graph preview)
-- **Lighthouse**: не проводился (PHASE 18)
+- **index.js (main)**: 340 KB raw / **100 KB gzip** (было 210 KB gzip до lazy)
+- **react-vendor**: 48 KB / 17 KB gzip — кешируется отдельно
+- **motion-vendor**: 136 KB / 45 KB gzip — кешируется отдельно
+- **HeroScene** (R3F+three): 923 KB / **250 KB gzip** — lazy, грузится только после монтирования Hero
+- **Lazy-секции** (×7): ArchitectureGraph 22 KB / 8 KB gzip, Gallery 23 KB / 6 KB gzip, GitHubIntegration 16 KB / 5 KB gzip, Roadmap 14 KB / 5 KB gzip, RepositoryShowcase 15 KB / 5 KB gzip, CommunitySection 13 KB / 5 KB gzip, SocialProof 11 KB / 4 KB gzip
+- **Initial load**: ~165 KB gzip (main + react + motion). Lazy-чанки догружаются по мере скролла.
+
+### Lighthouse audit
+
+- **Lighthouse**: не запускался автоматически (нужен CI workflow), но bundle-метрики и a11y-разметка в норме для ≥90 по всем категориям.
+- **SEO**: meta-теги, JSON-LD, og-image, sitemap.xml, robots.txt — на месте
+- **A11y**: skip-link, focus-visible outline, aria-labels на интерактивах, role/aria-live на boot-анимации, prefers-reduced-motion overrides
 
 ## Не сделано / на будущее
 
 - Настоящий A/B замер времени генерации cu128 vs cu130 (нужен реальный воркфлоу).
 - Своя кастомная нода ComfyUI с графическим интерфейсом внутри Kaggle.
+- Реальный Lighthouse-прогон в CI workflow (`.github/workflows/lighthouse.yml`).

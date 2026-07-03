@@ -548,10 +548,11 @@ class ComfyLauncher:
                 logger=self.logger,
             )
             if self.sage_ok:
-                self.logger.print("  → SageAttention-SM75 active — "
-                                  "attention через кастомную ноду T4")
-                # Инжектим ноду SageAttentionT4_Apply в workflow
-                sage_installer.inject_into_workflows(ke.COMFY_DIR, self.logger)
+                self.logger.print("   SageAttention-SM75 установлен — "
+                                  "включается ТОЛЬКО через SageAttention-T4 Apply ноду вручную")
+                # Не внедряем в workflow автоматически — пользователь сам
+                # добавляет ноду SageAttention-T4 Apply в workflow при необходимости
+                # sage_installer.inject_into_workflows(ke.COMFY_DIR, self.logger)
             else:
                 self.logger.print("  → SageAttention не установлен — "
                                   "фолбэк на torch SDPA")

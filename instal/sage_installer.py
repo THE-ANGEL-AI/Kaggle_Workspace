@@ -54,9 +54,10 @@ def install(home_dir, venv_python, comfy_dir, logger):
 
     # --- Шаг 0: клонируем/обновляем репозиторий ВСЕГДА ---
     # (даже если пакет уже установлен — чтобы подтянуть свежий код ноды)
+    updated = False
     if os.path.isdir(sage_src):
         _ensure_fork_remote(sage_src, logger)
-        _update_repo(sage_src, logger)
+        updated = _update_repo(sage_src, logger)
     else:
         _clone_repo(sage_src, logger)
 
@@ -70,7 +71,26 @@ def install(home_dir, venv_python, comfy_dir, logger):
         [venv_python, "-c", "import sageattention"],
         capture_output=True, text=True, timeout=15)
     if check.returncode == 0:
-        logger.print("[*] SageAttention уже установлен (пропуск)")
+        if updated:
+            logger.print("[*] Форк обновился — перекомпилирую SageAttention...")
+            logger.set_status("⚙️ Перекомпилирую SageAttention-SM75...", "#f39c12")
+            rebuild = subprocess.run(
+                [venv_python, "-m", "pip", "install", "-e", ".",
+                 "--no-build-isolation", "--no-deps"],
+                cwd=sage_src,
+                capture_output=True, text=True, timeout=900)
+            if rebuild.returncode == 0:
+                logger.print("[OK] SageAttention-SM75 перекомпилирован и установлен!")
+                _log_version(venv_python, sage_src, logger)
+            else:
+                logger.print("[!] Перекомпиляция не удалась — работаю со старой версией")
+                for line in (rebuild.stderr or "").split("\n")[-8:]:
+                    line = line.strip()
+                    if line:
+                        logger.print(f"  ⛔ {line}")
+        else:
+            logger.print("[*] SageAttention уже установлен (пропуск)")
+
         # Всё равно обновляем custom node прокси-пакет (подхватит свежий код)
         _link_custom_node(sage_src, comfy_dir, logger)
         return True
@@ -107,6 +127,9 @@ def install(home_dir, venv_python, comfy_dir, logger):
     # --- Шаг 6: симлинк в custom_nodes ---
     _link_custom_node(sage_src, comfy_dir, logger)
 
+    # --- Шаг 7: логируем версию ---
+    _log_version(venv_python, sage_src, logger)
+
     logger.print("[OK] SageAttention-SM75 готов!")
     return True
 
@@ -120,7 +143,16 @@ def _ensure_fork_remote(sage_src, logger):
 
 
 def _update_repo(sage_src, logger):
-    """Сбрасывает локальные патчи и делает pull."""
+    """Сбрасывает локальные патчи и делает pull.
+
+    Returns:
+        True, если были получены новые изменения из форка.
+    """
+    # Запоминаем HEAD до pull — чтобы детектить реальные изменения
+    before = subprocess.run(
+        ["git", "-C", sage_src, "rev-parse", "HEAD"],
+        capture_output=True, text=True, timeout=15)
+
     subprocess.run(
         ["git", "-C", sage_src, "reset", "--hard", "--quiet"],
         capture_output=True, text=True, timeout=30)
@@ -131,14 +163,22 @@ def _update_repo(sage_src, logger):
         ["git", "-C", sage_src, "pull", "--ff-only"],
         capture_output=True, text=True, timeout=60)
     if pull.returncode == 0:
-        out = (pull.stdout or "").strip()
-        if out and "Already up to date" not in out:
-            logger.print(f"[*] Форк обновлён: {out.splitlines()[-3:][0]}")
+        # Сравниваем HEAD после pull
+        after = subprocess.run(
+            ["git", "-C", sage_src, "rev-parse", "HEAD"],
+            capture_output=True, text=True, timeout=15)
+        changed = (before.stdout or "").strip() != (after.stdout or "").strip()
+
+        if changed:
+            out = (pull.stdout or "").strip()
+            logger.print(f"[*] Форк обновлён: {out.splitlines()[-3:][0] if out else 'новые коммиты'}")
         else:
             logger.print("[*] Форк актуален")
+        return changed
     else:
         err = (pull.stderr or "").strip()[:200]
         logger.print(f"[!] git pull не удался: {err} (старая версия)")
+        return False
 
 
 def _clone_repo(sage_src, logger):
@@ -265,6 +305,24 @@ def _link_custom_node(sage_src, comfy_dir, logger):
         logger.print(f"[*] ComfyUI node создан: SageAttention-T4 → {sage_src}")
     except OSError as e:
         logger.print(f"[!] Не удалось создать папку ноды ({e})")
+
+
+def _log_version(venv_python, sage_src, logger):
+    """Логирует версию SageAttention и хеш коммита форка."""
+    # Версия пакета (если есть __version__)
+    ver = subprocess.run(
+        [venv_python, "-c",
+         "import sageattention; print(getattr(sageattention, '__version__', 'unknown'))"],
+        capture_output=True, text=True, timeout=15)
+    version = (ver.stdout or "").strip()
+
+    # Хеш коммита форка
+    commit = subprocess.run(
+        ["git", "-C", sage_src, "rev-parse", "--short", "HEAD"],
+        capture_output=True, text=True, timeout=15)
+    commit_hash = (commit.stdout or "").strip()
+
+    logger.print(f"[OK] SageAttention-SM75-path: версия {version} | коммит {commit_hash}")
 
 
 def inject_into_workflows(comfy_dir, logger):

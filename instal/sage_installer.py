@@ -171,7 +171,17 @@ def _update_repo(sage_src, logger):
 
         if changed:
             out = (pull.stdout or "").strip()
-            logger.print(f"[*] Форк обновлён: {out.splitlines()[-3:][0] if out else 'новые коммиты'}")
+            if out:
+                # Показываем все изменённые файлы (строки с '|' в выводе git pull)
+                files = [line.strip() for line in out.splitlines() if '|' in line]
+                if files:
+                    logger.print("[*] Форк обновлён:")
+                    for f in files:
+                        logger.print(f"    {f}")
+                else:
+                    logger.print(f"[*] Форк обновлён: {out.splitlines()[-1]}")
+            else:
+                logger.print("[*] Форк обновлён: новые коммиты")
         else:
             logger.print("[*] Форк актуален")
         return changed

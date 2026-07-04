@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SectionHeader } from './SectionHeader';
 import {
   gpuPlatforms,
   calcMonthlyCost,
@@ -361,18 +362,11 @@ export function GPUCostCalculator() {
 
   return (
     <section className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Калькулятор
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          GPU Cost Calculator
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Сравни стоимость GPU-облаков. Двигай слайдер — смотри, сколько экономишь с Kaggle.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Калькулятор"
+        title="GPU Cost Calculator"
+        description="Сравни стоимость GPU-облаков. Двигай слайдер — смотри, сколько экономишь с Kaggle."
+      />
 
       {/* Slider */}
       <div className="max-w-[600px] mx-auto mb-10">

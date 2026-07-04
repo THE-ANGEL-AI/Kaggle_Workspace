@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Rocket, Shield, Zap, Puzzle, Package, Link2, Globe } from 'lucide-react';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { SectionHeader } from './SectionHeader';
 
 const cards = [
   { icon: Rocket, title: 'Запуск одной строкой', body: 'Три Python-скрипта в instal/: окружение, ноды, запуск. Через пару минут после старта — публичный URL.', stat: '~2 мин до URL', span: 3 },
@@ -17,11 +18,12 @@ export function Bento() {
 
   return (
     <section className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
-      <div className="text-center mb-14">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">Подробности</span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">ComfyUI как пайплайн из шести модулей</h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[660px] mx-auto leading-relaxed">Не одна библиотека — а рабочий конвейер: окружение, ноды, симлинки, два GPU и туннель.</p>
-      </div>
+      <SectionHeader
+        badge="Подробности"
+        title="ComfyUI как пайплайн из шести модулей"
+        description="Не одна библиотека — а рабочий конвейер: окружение, ноды, симлинки, два GPU и туннель."
+        className="mb-14"
+      />
 
       <div className="grid grid-cols-6 gap-3 sm:gap-4">
         {cards.map((c) => {

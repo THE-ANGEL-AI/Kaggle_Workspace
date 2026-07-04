@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  repoScipts,
+  repoScripts,
   repoWorkflows,
   repoFeatures,
   repoFileTree,
@@ -18,6 +18,7 @@ import {
   Braces,
   Sparkles,
 } from 'lucide-react';
+import { SectionHeader } from './SectionHeader';
 
 /* ── Tab config ── */
 interface Tab {
@@ -172,7 +173,7 @@ function ScriptCard({ script, index }: { script: RepoScript; index: number }) {
 function ScriptsTab() {
   return (
     <div className="grid md:grid-cols-3 gap-3">
-      {repoScipts.map((script, i) => (
+      {repoScripts.map((script, i) => (
         <ScriptCard key={script.name} script={script} index={i} />
       ))}
     </div>
@@ -272,18 +273,11 @@ export function RepositoryShowcase() {
 
   return (
     <section className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Репозиторий
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Что внутри репозитория
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Исследуй структуру, скрипты, workflow и возможности проекта.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Репозиторий"
+        title="Что внутри репозитория"
+        description="Исследуй структуру, скрипты, workflow и возможности проекта."
+      />
 
       {/* Tab bar */}
       <div className="flex items-center justify-center gap-1 mb-8">

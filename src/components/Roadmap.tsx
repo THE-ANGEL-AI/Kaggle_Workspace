@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { SectionHeader } from './SectionHeader';
 
 /* ── Filter buttons ── */
 interface FilterOption {
@@ -219,18 +220,11 @@ export function Roadmap() {
 
   return (
     <section id="roadmap" className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Дорожная карта
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Development Roadmap
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Все 19 фаз разработки сайта. Завершённые, текущие и запланированные.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Дорожная карта"
+        title="Development Roadmap"
+        description="Все 19 фаз разработки сайта. Завершённые, текущие и запланированные."
+      />
 
       {/* Progress bar */}
       <div className="max-w-[600px] mx-auto mb-8">

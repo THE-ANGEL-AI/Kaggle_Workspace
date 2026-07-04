@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { SectionHeader } from './SectionHeader';
 
 interface NodeProps {
   label: string;
@@ -86,17 +87,12 @@ function ArrowConnector({ index, color }: { index: number; color: string }) {
 export function WorkflowDiagram() {
   return (
     <section className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
-      <div className="text-center mb-12">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Pipeline
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Визуальная схема работы
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[580px] mx-auto leading-relaxed">
-          От блокнота до публичного ComfyUI — за ~80 секунд
-        </p>
-      </div>
+      <SectionHeader
+        badge="Pipeline"
+        title="Визуальная схема работы"
+        description="От блокнота до публичного ComfyUI — за ~80 секунд"
+        className="mb-12"
+      />
 
       <motion.div
         className="glass rounded-2xl p-6 sm:p-10 border border-border backdrop-blur-xl"

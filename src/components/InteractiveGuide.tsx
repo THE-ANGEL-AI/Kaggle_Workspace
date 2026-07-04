@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -13,6 +13,7 @@ import {
   Sparkles,
   RotateCcw,
 } from 'lucide-react';
+import { SectionHeader } from './SectionHeader';
 
 /* ── Step data ── */
 interface Step {
@@ -276,17 +277,11 @@ export function InteractiveGuide() {
 
   return (
     <section id="start" className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Интерактивный гид
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          30-секундный онбординг
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[580px] mx-auto leading-relaxed">
-          Гайд сам переключает шаги. Нажимай ← → для ручного управления.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Интерактивный гид"
+        title="30-секундный онбординг"
+        description="Гайд сам переключает шаги. Нажимай ← → для ручного управления."
+      />
 
       {/* Card */}
       <motion.div

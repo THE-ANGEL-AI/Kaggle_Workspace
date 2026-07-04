@@ -167,7 +167,7 @@ export function Home() {
       <StorySection
         chapter={1}
         label="Глава 1"
-        title="Kaggle Workspace FreeGPU — это"
+        title="Kaggle Workspace FreeGPU — это бесплатный ComfyUI"
         accent="бесплатный ComfyUI"
         aside={<Chapter1Aside />}
       >
@@ -188,7 +188,7 @@ export function Home() {
       <StorySection
         chapter={2}
         label="Глава 2"
-        title="Почему это"
+        title="Почему это работает"
         accent="работает"
         aside={<Chapter2Aside />}
         reversed
@@ -211,7 +211,7 @@ export function Home() {
       <StorySection
         chapter={3}
         label="Глава 3"
-        title="Поддерживаемые"
+        title="Поддерживаемые модели"
         accent="модели"
         aside={<Chapter3Aside />}
         colors={['#A855F7', '#00F5FF']}
@@ -240,7 +240,7 @@ export function Home() {
       <StorySection
         chapter={4}
         label="Глава 4"
-        title="Ключевые"
+        title="Ключевые возможности"
         accent="возможности"
         colors={['#00FFB3', '#00F5FF']}
       >
@@ -337,7 +337,7 @@ export function Home() {
       <StorySection
         chapter={5}
         label="Глава 5"
-        title="Присоединяйся к"
+        title="Присоединяйся к сообществу"
         accent="сообществу"
         aside={<Chapter5Aside />}
         reversed
@@ -362,7 +362,7 @@ export function Home() {
       <StorySection
         chapter={6}
         label="Глава 6"
-        title="Будущее"
+        title="Будущее проекта"
         accent="проекта"
         aside={<Chapter6Aside />}
         colors={['#FCEE0A', '#00F5FF']}

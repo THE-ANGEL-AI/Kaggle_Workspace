@@ -25,8 +25,7 @@ export function useCopyToClipboard(timeoutMs = 2000): [boolean, (text: string) =
       }
       setCopied(true);
       setTimeout(() => setCopied(false), timeoutMs);
-    } catch (err) {
-      console.warn('[copy] failed:', err);
+    } catch {
       setCopied(false);
     }
   }, [timeoutMs]);

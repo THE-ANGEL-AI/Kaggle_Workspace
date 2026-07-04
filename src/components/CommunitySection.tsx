@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   socialPlatforms,
@@ -8,43 +8,8 @@ import {
   type SocialPlatform,
 } from '../data/community';
 import { ExternalLink, Users, Sparkles, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
-
-/* ── Animated Counter ── */
-function AnimatedCounter({ value, suffix, duration = 2000 }: { value: number; suffix: string; duration?: number }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const counted = useRef(false);
-
-  useEffect(() => {
-    if (!ref.current || counted.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !counted.current) {
-          counted.current = true;
-          const start = performance.now();
-          const step = (now: number) => {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.floor(eased * value));
-            if (progress < 1) requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        }
-      },
-      { threshold: 0.3 },
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, duration]);
-
-  return (
-    <span ref={ref} className="tabular-nums">
-      {count}
-      {suffix}
-    </span>
-  );
-}
+import { AnimatedCounter } from './ui/AnimatedCounter';
+import { SectionHeader } from './SectionHeader';
 
 /* ── Stat Card ── */
 function StatCard({ stat, index }: { stat: typeof communityStats[0]; index: number }) {
@@ -333,19 +298,17 @@ export function CommunitySection() {
       {/* Background decoration */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-gradient-radial from-cyan/[0.03] via-violet/[0.02] to-transparent pointer-events-none" />
 
-      {/* Header */}
-      <div className="text-center mb-12 relative">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          PHASE 15
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Сообщество{' '}
-          <span className="bg-gradient-to-r from-cyan to-violet bg-clip-text text-transparent">THE ANGEL</span>
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[640px] mx-auto leading-relaxed">
-          420+ участников, 12 800+ генераций, 4 платформы. Присоединяйся к растущему сообществу.
-        </p>
-      </div>
+      <SectionHeader
+        badge="PHASE 15"
+        title={
+          <>
+            Сообщество{' '}
+            <span className="bg-gradient-to-r from-cyan to-violet bg-clip-text text-transparent">THE ANGEL</span>
+          </>
+        }
+        description="420+ участников, 12 800+ генераций, 4 платформы. Присоединяйся к растущему сообществу."
+        className="mb-12"
+      />
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 mb-10">

@@ -1,7 +1,7 @@
 // Типизированный список новостных записей. Один источник для Home (teaser)
 // и News (полная лента). Сортировка: новые сверху.
 
-export type NewsTag = 'release' | 'gpu' | 'video' | 'infra' | 'docs';
+type NewsTag = 'release' | 'gpu' | 'video' | 'infra' | 'docs';
 
 export interface NewsEntry {
   /** ISO дата, для сортировки и <time datetime=""> */

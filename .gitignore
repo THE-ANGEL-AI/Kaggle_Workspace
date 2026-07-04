@@ -34,6 +34,10 @@ Thumbs.db
 **/AGENTS.md
 PROJECT_MEMORY.md
 
+# --- Bundle analyzer artifacts ---
+stats.html
+stats.json
+
 # --- DEFENSE IN DEPTH: защита от случайного попадания Kaggle-папок в site ---
 # В этой ветке живёт только React-сайт. Если когда-то случайно окажутся тут
 # нижеуказанные папки (например, после `git checkout main` в смежной рабочей

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { hints, welcomeMessage, recommendations, detectSection, type AssistantHint } from '../data/assistantHints';
 import { X, Sparkles, ChevronRight, MessageCircle, Heart } from 'lucide-react';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 /* ── SVG Angel Mascot ── */
 function AngelMascot({ size = 48 }: { size?: number }) {
@@ -132,11 +133,11 @@ export function AngelAssistant() {
   // Welcome: show after 3 seconds on first visit
   useEffect(() => {
     let welcomed: string | null = null;
-    try { welcomed = sessionStorage.getItem('angel-welcomed'); } catch {}
+    try { welcomed = sessionStorage.getItem('angel-welcomed'); } catch { /* ignore */ }
     if (!welcomed) {
       timeoutRef.current = setTimeout(() => {
         setShowWelcome(true);
-        try { sessionStorage.setItem('angel-welcomed', 'true'); } catch {}
+        try { sessionStorage.setItem('angel-welcomed', 'true'); } catch { /* ignore */ }
       }, 3000);
     }
     return () => {
@@ -159,18 +160,10 @@ export function AngelAssistant() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isOpen]);
 
-  // Close on Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        setShowWelcome(false);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen]);
+  useEscapeKey(() => {
+    setIsOpen(false);
+    setShowWelcome(false);
+  }, isOpen);
 
   const toggle = useCallback(() => {
     setIsOpen((v) => !v);

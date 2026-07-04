@@ -14,13 +14,13 @@ export interface ArchNode {
   y: number;
 }
 
-export interface ArchEdge {
+interface ArchEdge {
   from: string;
   to: string;
   label: string;
 }
 
-export type GroupId =
+type GroupId =
   | 'entry'
   | 'pages'
   | 'components'
@@ -80,10 +80,6 @@ export const architectureNodes: ArchNode[] = [
     description: 'Hero-секция',
     details: '3D-сцена на фоне, AI Boot Sequence при загрузке, магнитные кнопки (GitHub / Quick Start / Boosty), parallax по мыши. Кинектический заголовок с градиентом.',
     tech: ['Framer Motion', 'Three.js'] },
-  { id: 'bootseq',     label: 'HeroBootSequence.tsx', group: 'components', icon: '💻', x: 50,  y: 480,
-    description: 'Boot-анимация',
-    details: '10 строк лога с таймингом (300–800ms). Цветовые индикаторы (зелёный для ACTIVE, циан для GPU). Мигающий курсор в стиле терминала.',
-    tech: ['CSS animations'] },
   { id: 'cursor',      label: 'CursorGlow.tsx',  group: 'components', icon: '🖱️', x: 950, y: 480,
     description: 'Кастомный курсор',
     details: 'Точка + кольцо. Следит за мышью через useMousePosition. Расширяется над интерактивными элементами (a, button, [data-cursor-hover]). Скрыт на touch-устройствах.',
@@ -187,7 +183,6 @@ export const architectureEdges: ArchEdge[] = [
 
   // Hero → children
   { from: 'hero', to: 'heroscene', label: '3D bg' },
-  { from: 'hero', to: 'bootseq', label: 'boot overlay' },
   { from: 'hero', to: 'usemouse', label: 'parallax' },
 
   // News → data

@@ -1,7 +1,10 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { galleryItems, galleryCategories, type GalleryItem } from '../data/gallery';
 import { X, ChevronLeft, ChevronRight, Maximize2, Clock, Image } from 'lucide-react';
+import { SectionHeader } from './SectionHeader';
+import { useEscapeKey } from '../hooks/useEscapeKey';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 /* ── Gallery Card ── */
 function GalleryCard({
@@ -89,22 +92,8 @@ function Lightbox({
 }) {
   const cat = galleryCategories.find((c) => c.id === item.category);
 
-  // Keyboard nav
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft' && hasPrev) onPrev();
-      if (e.key === 'ArrowRight' && hasNext) onNext();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose, onPrev, onNext, hasPrev, hasNext]);
-
-  // Prevent body scroll
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, []);
+  useEscapeKey(onClose);
+  useScrollLock(true);
 
   return (
     <motion.div
@@ -234,18 +223,11 @@ export function Gallery() {
 
   return (
     <section id="gallery" className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Галерея
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Примеры генераций
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Flux2 GGUF, LTX 2.3 Video, ComfyUI workflow и TTS. Нажми на карточку для просмотра.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Галерея"
+        title="Примеры генераций"
+        description="Flux2 GGUF, LTX 2.3 Video, ComfyUI workflow и TTS. Нажми на карточку для просмотра."
+      />
 
       {/* Category filter */}
       <div className="flex items-center justify-center gap-1.5 mb-8 flex-wrap">

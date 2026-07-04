@@ -2,7 +2,7 @@
    Social Proof — счётчики, метрики, отзывы
    ────────────────────────────────────────────── */
 
-export interface ProofCounter {
+interface ProofCounter {
   label: string;
   value: number;
   suffix: string;
@@ -12,14 +12,14 @@ export interface ProofCounter {
   description: string;
 }
 
-export interface MilestoneMetric {
+interface MilestoneMetric {
   label: string;
   value: string;
   color: string;
   description: string;
 }
 
-export interface Testimonial {
+interface Testimonial {
   text: string;
   author: string;
   role: string;

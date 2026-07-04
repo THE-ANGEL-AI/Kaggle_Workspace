@@ -13,7 +13,7 @@ export interface SocialPlatform {
   cta: string;
 }
 
-export interface CommunityStat {
+interface CommunityStat {
   label: string;
   value: number;
   suffix: string;
@@ -21,7 +21,7 @@ export interface CommunityStat {
   icon: string;
 }
 
-export interface GrowthMetric {
+interface GrowthMetric {
   month: string;
   value: number;
 }

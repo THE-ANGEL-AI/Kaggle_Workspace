@@ -23,6 +23,10 @@ export function useLenis() {
 
     lenisRef.current = lenis;
 
+    // Force scroll to top on initial load — prevents Lenis from restoring
+    // a previous scroll position and landing in the middle of the page.
+    lenis.scrollTo(0, { immediate: true });
+
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);

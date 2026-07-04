@@ -3,15 +3,6 @@
    Структура main ветки Kaggle_Workspace_FreeGPU
    ────────────────────────────────────────────── */
 
-export interface RepoFile {
-  name: string;
-  path: string;
-  type: 'file' | 'dir';
-  icon: string;
-  description: string;
-  size?: string;
-}
-
 export interface RepoScript {
   name: string;
   file: string;
@@ -33,24 +24,15 @@ export interface RepoWorkflow {
   accent: string;
 }
 
-export interface RepoFeature {
+interface RepoFeature {
   icon: string;
   title: string;
   description: string;
   color: string;
 }
 
-/** Top-level structure */
-export const repoStructure: RepoFile[] = [
-  { name: 'instal/', path: 'instal/', type: 'dir', icon: '📦', description: '3 Python-скрипта установки ComfyUI', size: '5 файлов' },
-  { name: 'workflows/', path: 'workflows/', type: 'dir', icon: '🔀', description: 'Готовые графы ComfyUI (Flux, LTX)', size: '3 файла' },
-  { name: 'Notebook/', path: 'Notebook/', type: 'dir', icon: '📓', description: 'Kaggle-блокноты для запуска', size: '—' },
-  { name: 'README.md', path: 'README.md', type: 'file', icon: '📖', description: 'Основная документация проекта', size: '—' },
-  { name: '.gitignore', path: '.gitignore', type: 'file', icon: '🔒', description: 'Правила игнорирования файлов', size: '—' },
-];
-
 /** Scripts (instal/) */
-export const repoScipts: RepoScript[] = [
+export const repoScripts: RepoScript[] = [
   {
     name: 'instal_comfyui.py',
     file: 'instal/instal_comfyui.py',

@@ -2,14 +2,7 @@
    AI Terminal — команды и ответы
    ────────────────────────────────────────────── */
 
-export interface TerminalCommand {
-  command: string;
-  description: string;
-  aliases?: string[];
-  hidden?: boolean;
-}
-
-export interface CommandResponse {
+interface CommandResponse {
   /** Lines to print (supports ansi-like color tags) */
   lines: string[];
   /** Override typing speed (ms per char) */
@@ -20,28 +13,8 @@ export interface CommandResponse {
   effect?: 'matrix' | 'neofetch' | 'snake';
 }
 
-/* ── All known commands ── */
-export const terminalCommands: TerminalCommand[] = [
-  { command: 'help', description: 'Список доступных команд' },
-  { command: 'github', description: 'Ссылка на GitHub репозиторий' },
-  { command: 'kaggle', description: 'Информация о Kaggle Workspace' },
-  { command: 'comfy', description: 'Статус ComfyUI' },
-  { command: 'flux', description: 'Информация о Flux2 GGUF' },
-  { command: 'ltx', description: 'Информация о LTX 2.3 Video' },
-  { command: 'models', description: 'Список поддерживаемых моделей' },
-  { command: 'specs', description: 'Характеристики GPU и окружения' },
-  { command: 'quickstart', description: 'Быстрый старт в 3 шага' },
-  { command: 'clear', description: 'Очистить терминал' },
-  { command: 'whoami', description: 'Кто ты?', hidden: true },
-  { command: 'neofetch', description: 'Показать систему', hidden: true },
-  { command: 'uptime', description: 'Время работы', hidden: true },
-  { command: 'matrix', description: 'Эффект матрицы', hidden: true },
-  { command: 'sudo', description: 'Повышение привилегий', hidden: true },
-  { command: '42', description: 'Ответ на главный вопрос', hidden: true },
-];
-
 /* ── Command aliases ── */
-export const commandAliases: Record<string, string> = {
+const commandAliases: Record<string, string> = {
   ls: 'help',
   '?': 'help',
   gh: 'github',

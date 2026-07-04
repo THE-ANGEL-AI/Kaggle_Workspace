@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { getCommandResponse } from '../data/terminalCommands';
 import { ChevronRight } from 'lucide-react';
+import { SectionHeader } from './SectionHeader';
 
 /* ── Color tag to className ── */
 const colorMap: Record<string, string> = {
@@ -316,21 +317,16 @@ export function AITerminal() {
 
   return (
     <section className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Терминал
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          AI Terminal
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Интерактивный терминал проекта. Вводи команды — получай информацию.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Терминал"
+        title="AI Terminal"
+        description="Интерактивный терминал проекта. Вводи команды — получай информацию."
+      />
 
       {/* Terminal */}
       <motion.div
         className="relative max-w-[820px] mx-auto bg-[#0C0C0C] border border-border rounded-2xl overflow-hidden shadow-[0_10px_50px_rgba(0,0,0,0.60),0_0_40px_rgba(0,245,255,0.03)]"
+        style={{ willChange: 'transform, opacity' }}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}

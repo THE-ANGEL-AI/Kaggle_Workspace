@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { memo, useRef, useMemo } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
@@ -23,7 +23,7 @@ interface StorySectionProps {
   colors?: [string, string];
 }
 
-export function StorySection({
+function StorySectionComponent({
   chapter,
   label,
   title,
@@ -51,18 +51,18 @@ export function StorySection({
   const c2 = colors?.[1] ?? chapterColors[(chapter) % chapterColors.length]!;
 
   // Split title into regular + accent parts
-  const titleParts = accent ? title.split(accent) : [title];
+  const titleParts = useMemo(() => (accent ? title.split(accent) : [title]), [accent, title]);
 
   return (
     <motion.section
       ref={ref}
       className="relative z-10 px-4 sm:px-8 py-20 sm:py-28 overflow-hidden"
-      style={{ opacity }}
+      style={{ opacity, willChange: 'transform, opacity' }}
     >
       {/* Parallax background glow */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
-        style={{ y: bgY }}
+        style={{ y: bgY, willChange: 'transform' }}
       >
         <div
           className="absolute top-[20%] left-[5%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.04]"
@@ -75,12 +75,13 @@ export function StorySection({
       </motion.div>
 
       <div className="relative max-w-[1200px] mx-auto">
-        {/* Chapter number — large decorative */}
+        {/* Chapter number — large decorative, absolute so it doesn't push layout */}
         <motion.div
-          className="font-display text-[clamp(4rem,12vw,10rem)] font-black leading-[0.8] select-none"
+          className="absolute top-0 left-0 z-0 font-display text-[clamp(4rem,12vw,10rem)] font-black leading-[0.8] select-none pointer-events-none -translate-y-1/4"
           style={{
             color: `${c1}0D`,
             WebkitTextStroke: `1px ${c1}20`,
+            willChange: 'transform, opacity',
           } as React.CSSProperties}
           initial={{ opacity: 0, x: reversed ? 100 : -100 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -91,7 +92,7 @@ export function StorySection({
         </motion.div>
 
         <div
-          className="grid gap-8 md:gap-16 items-center -mt-4 sm:-mt-8"
+          className="relative grid gap-8 md:gap-16 items-center pt-24 sm:pt-32"
           style={{
             gridTemplateColumns: aside
               ? '5fr 4fr'
@@ -101,7 +102,7 @@ export function StorySection({
           {/* Text column */}
           <motion.div
             className="relative z-10"
-            style={{ y: textY }}
+            style={{ y: textY, willChange: 'transform' }}
             initial={{ opacity: 0, y: reduced ? 0 : 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -124,13 +125,15 @@ export function StorySection({
               {accent ? (
                 <>
                   {titleParts[0]}
-                  <span
-                    className="bg-clip-text text-transparent bg-gradient-to-r"
-                    style={{ backgroundImage: `linear-gradient(135deg, ${c1}, ${c2})` }}
-                  >
-                    {accent}
-                  </span>
-                  {titleParts[1]}
+                  {titleParts.length > 1 && (
+                    <span
+                      className="bg-clip-text text-transparent bg-gradient-to-r"
+                      style={{ backgroundImage: `linear-gradient(135deg, ${c1}, ${c2})` }}
+                    >
+                      {accent}
+                    </span>
+                  )}
+                  {titleParts[1] ?? ''}
                 </>
               ) : (
                 title
@@ -147,6 +150,7 @@ export function StorySection({
           {aside && (
             <motion.div
               className="relative"
+              style={{ willChange: 'transform, opacity' }}
               initial={{ opacity: 0, x: reversed ? -30 : 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -168,3 +172,5 @@ export function StorySection({
     </motion.section>
   );
 }
+
+export const StorySection = memo(StorySectionComponent);

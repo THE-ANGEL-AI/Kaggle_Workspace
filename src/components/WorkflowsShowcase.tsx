@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
+import { SectionHeader } from './SectionHeader';
 
 const workflows = [
   { title: 'Flux2 GGUF', tag: 'text-to-image', accent: 'cyan', preview: 'image' },
@@ -65,11 +66,12 @@ export function WorkflowsShowcase() {
 
   return (
     <section className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
-      <div className="text-center mb-14">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">Workflows</span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">Три готовых графа</h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[660px] mx-auto leading-relaxed">Откройте в ComfyUI — никаких скрытых зависимостей.</p>
-      </div>
+      <SectionHeader
+        badge="Workflows"
+        title="Три готовых графа"
+        description="Откройте в ComfyUI — никаких скрытых зависимостей."
+        className="mb-14"
+      />
 
       <div className="grid sm:grid-cols-3 gap-4 sm:gap-5">
         {workflows.map((w) => {

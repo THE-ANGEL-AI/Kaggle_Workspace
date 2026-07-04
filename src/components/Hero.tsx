@@ -133,6 +133,7 @@ export function Hero() {
             {/* Logo */}
             <motion.div
               className="flex items-center gap-3 mb-6"
+              style={{ willChange: 'transform, opacity' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -156,6 +157,7 @@ export function Hero() {
             {/* Title */}
             <motion.h1
               className="text-[clamp(2.6rem,7.5vw,5.2rem)] font-display font-black leading-[1.02] -tracking-[0.04em] mb-4"
+              style={{ willChange: 'transform, opacity' }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -171,6 +173,7 @@ export function Hero() {
             {/* Subtitle */}
             <motion.p
               className="text-text-dim text-[clamp(1.05rem,1.6vw,1.25rem)] max-w-[580px] mb-6 leading-relaxed"
+              style={{ willChange: 'opacity' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -182,6 +185,7 @@ export function Hero() {
             {/* Tags */}
             <motion.div
               className="flex flex-wrap gap-2 mb-8"
+              style={{ willChange: 'opacity' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
@@ -196,6 +200,7 @@ export function Hero() {
             {/* CTA Buttons */}
             <motion.div
               className="flex flex-wrap gap-3"
+              style={{ willChange: 'transform, opacity' }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
@@ -234,6 +239,7 @@ export function Hero() {
         {/* Scroll indicator */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          style={{ willChange: 'opacity' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}

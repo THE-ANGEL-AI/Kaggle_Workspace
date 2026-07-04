@@ -125,7 +125,7 @@ export const welcomeMessage = {
 };
 
 /** Feature recommendations */
-export interface FeatureRecommendation {
+interface FeatureRecommendation {
   icon: string;
   title: string;
   description: string;

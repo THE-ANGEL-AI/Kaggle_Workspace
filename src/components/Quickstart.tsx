@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Copy, Check } from 'lucide-react';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 import type { ReactNode } from 'react';
+import { SectionHeader } from './SectionHeader';
 
 const cells: { comment: string; code: ReactNode }[] = [
   { comment: '# 0.  Скрипты из репозитория', code: <>!git clone https://github.com/THE-ANGEL-AI/Kaggle_Workspace_FreeGPU.git || \<br />{'  '}git -C Kaggle_Workspace_FreeGPU pull</> },
@@ -42,11 +43,12 @@ function stripTags(node: ReactNode): string {
 export function Quickstart() {
   return (
     <section id="start" className="max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20">
-      <div className="text-center mb-14">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">Быстрый старт</span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">Три ячейки — и ComfyUI работает</h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[660px] mx-auto leading-relaxed">Включите GPU T4 ×2 и интернет. Жмите Copy и вставляйте ячейки по порядку.</p>
-      </div>
+      <SectionHeader
+        badge="Быстрый старт"
+        title="Три ячейки — и ComfyUI работает"
+        description="Включите GPU T4 ×2 и интернет. Жмите Copy и вставляйте ячейки по порядку."
+        className="mb-14"
+      />
 
       <motion.div
         className="max-w-[920px] mx-auto bg-glass border border-border rounded-[20px] overflow-hidden backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.55),0_0_40px_rgba(0,240,255,0.04)]"

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X, ExternalLink } from 'lucide-react';
+import { useEscapeKey } from '../hooks/useEscapeKey';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 const links = [
   { to: '/#project', label: 'Проект' },
@@ -13,16 +15,8 @@ const links = [
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [menuOpen]);
+  useEscapeKey(() => setMenuOpen(false), menuOpen);
+  useScrollLock(menuOpen);
 
   const close = useCallback(() => setMenuOpen(false), []);
 

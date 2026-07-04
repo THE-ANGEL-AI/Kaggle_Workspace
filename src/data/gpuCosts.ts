@@ -86,7 +86,7 @@ export const gpuPlatforms: GpuPlatform[] = [
 ];
 
 /** GPU specs for detail view */
-export interface GpuSpec {
+interface GpuSpec {
   name: string;
   vram: string;
   architecture: string;

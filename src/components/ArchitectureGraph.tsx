@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   architectureNodes,
@@ -10,6 +10,8 @@ import {
 import { ArchitectureInfoPanel } from './ArchitectureInfoPanel';
 import { ZoomIn, ZoomOut, RotateCcw, Layers } from 'lucide-react';
 import { Tooltip } from './ui/tooltip';
+import { SectionHeader } from './SectionHeader';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 /* ── Helpers ── */
 
@@ -299,19 +301,7 @@ export function ArchitectureGraph() {
     setZoom(0.65);
   }, []);
 
-  // Determine if mobile — с реактивностью на resize
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 768,
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(max-width: 767px)');
-    const onChange = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
-    onChange(mq);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   // На мобиле группируем ноды по группам для вертикального списка
   const nodesByGroup = useMemo(() => {
@@ -325,19 +315,11 @@ export function ArchitectureGraph() {
 
   return (
     <section className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          Архитектура
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Интерактивный граф компонентов
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Наведи на узел — увидишь описание. Нажми — откроются технические детали.
-          Точки анимируют поток данных между модулями.
-        </p>
-      </div>
+      <SectionHeader
+        badge="Архитектура"
+        title="Интерактивный граф компонентов"
+        description="Наведи на узел — увидишь описание. Нажми — откроются технические детали. Точки анимируют поток данных между модулями."
+      />
 
       {/* Zoom controls */}
       <div className="flex items-center justify-center gap-2 mb-4">

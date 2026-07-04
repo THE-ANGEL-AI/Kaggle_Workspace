@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useGitHubData } from '../hooks/useGitHubData';
 import { Tooltip } from './ui/tooltip';
+import { SectionHeader } from './SectionHeader';
 import {
   Star,
   GitFork,
@@ -249,18 +250,11 @@ export function GitHubIntegration() {
 
   return (
     <section id="github" className="relative max-w-[1200px] mx-auto px-4 sm:px-8 py-16 sm:py-20 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          GitHub Live
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Живая статистика репозитория
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Данные с GitHub API. Обновляются каждые 3 минуты.
-        </p>
-      </div>
+      <SectionHeader
+        badge="GitHub Live"
+        title="Живая статистика репозитория"
+        description="Данные с GitHub API. Обновляются каждые 3 минуты."
+      />
 
       {/* Error banner */}
       {error && !loading && (

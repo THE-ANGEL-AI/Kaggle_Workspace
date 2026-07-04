@@ -6,56 +6,8 @@ import {
   testimonials,
 } from '../data/socialProof';
 import { Star, TrendingUp, Zap, Clock, Users, Quote } from 'lucide-react';
-
-/* ── Animated Counter ── */
-function AnimatedCounter({
-  value,
-  suffix,
-  prefix = '',
-  duration = 2500,
-}: {
-  value: number;
-  suffix: string;
-  prefix?: string;
-  duration?: number;
-}) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const counted = useRef(false);
-
-  useEffect(() => {
-    if (!ref.current || counted.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !counted.current) {
-          counted.current = true;
-          const start = performance.now();
-          const step = (now: number) => {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 4);
-            setCount(Math.floor(eased * value));
-            if (progress < 1) requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        }
-      },
-      { threshold: 0.2 },
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, duration]);
-
-  const formatted = count.toLocaleString('ru-RU');
-
-  return (
-    <span ref={ref} className="tabular-nums">
-      {prefix}
-      {formatted}
-      {suffix}
-    </span>
-  );
-}
+import { AnimatedCounter } from './ui/AnimatedCounter';
+import { SectionHeader } from './SectionHeader';
 
 /* ── Counter Card ── */
 function CounterCard({
@@ -103,6 +55,9 @@ function CounterCard({
             value={counter.value}
             suffix={counter.suffix}
             prefix={counter.prefix}
+            locale="ru-RU"
+            easePower={4}
+            threshold={0.2}
           />
         </div>
 
@@ -214,22 +169,19 @@ export function SocialProof() {
     >
       <ParallaxBg />
 
-      {/* Header */}
-      <div className="text-center mb-12 relative z-10">
-        <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-cyan bg-cyan/8 px-3.5 py-1.5 rounded-full mb-5 border border-cyan/20">
-          PHASE 16
-        </span>
-        <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)] font-display font-extrabold text-text-bright mb-3">
-          Социальное{' '}
-          <span className="bg-gradient-to-r from-cyan via-violet to-purple bg-clip-text text-transparent">
-            доказательство
-          </span>
-        </h2>
-        <p className="text-text-muted text-[1.08rem] max-w-[620px] mx-auto leading-relaxed">
-          Числа говорят громче слов. 428+ участников, 12 800+ генераций и
-          растущее сообщество.
-        </p>
-      </div>
+      <SectionHeader
+        badge="PHASE 16"
+        title={
+          <>
+            Социальное{' '}
+            <span className="bg-gradient-to-r from-cyan via-violet to-purple bg-clip-text text-transparent">
+              доказательство
+            </span>
+          </>
+        }
+        description="Числа говорят громче слов. 428+ участников, 12 800+ генераций и растущее сообщество."
+        className="mb-12"
+      />
 
       {/* Counters grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 mb-8 relative z-10">

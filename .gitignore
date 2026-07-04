@@ -55,3 +55,6 @@ _kaggle_tests/
 angel-ui/
 Claude Code Docs/
 instal/docs/
+
+# Browser automation artifacts (Playwright MCP)
+.playwright-mcp/

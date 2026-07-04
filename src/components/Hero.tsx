@@ -1,7 +1,6 @@
-import { useState, useCallback, useRef, lazy, Suspense } from 'react';
+import { useRef, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { GitBranch, Zap, Sparkles, ChevronDown } from 'lucide-react';
-import { BootSequence } from './HeroBootSequence';
 import { useMousePosition } from '../hooks/useMousePosition';
 
 // HeroScene (R3F + three.js, ~305 KB gzip) грузится отдельным чанком — иначе
@@ -89,15 +88,7 @@ function TagPill({ children, active = false }: { children: React.ReactNode; acti
 
 /* ── Hero ── */
 export function Hero() {
-  const [bootDone, setBootDone] = useState(false);
   const pos = useMousePosition();
-  const handleBootComplete = useCallback(() => {
-    setBootDone(true);
-  }, []);
-
-  const skipBoot = useCallback(() => {
-    setBootDone(true);
-  }, []);
 
   // Parallax values for 3D scene
   const parallaxX = (pos.x - 50) * 0.02;
@@ -134,37 +125,8 @@ export function Hero() {
       {/* Bottom gradient fade */}
       <div className="absolute bottom-0 left-0 right-0 h-48 z-[2] pointer-events-none bg-gradient-to-t from-bg-deep to-transparent" />
 
-      {/* ── Boot overlay ── */}
-      {!bootDone && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg-deep">
-          <div className="max-w-[600px] w-full px-6">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan shadow-[0_0_10px_var(--color-cyan),0_0_20px_var(--color-glow-cyan)] animate-pulse" />
-              <span className="font-mono text-[0.65rem] tracking-[0.3em] text-cyan uppercase font-bold">
-                THE ANGEL AI — System Startup
-              </span>
-            </div>
-            <div className="bg-bg-panel/80 border border-border rounded-xl p-4 sm:p-6 backdrop-blur-md">
-              <BootSequence onComplete={handleBootComplete} />
-            </div>
-            <button
-              onClick={skipBoot}
-              className="mt-4 font-mono text-[0.7rem] text-text-muted hover:text-text-dim transition-colors"
-            >
-              [Нажмите Esc / Space — или кликните, чтобы пропустить]
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ── Main content ── */}
-      <div
-        className="relative z-10 w-full max-w-[1340px] mx-auto"
-        style={{
-          opacity: bootDone ? 1 : 0,
-          transition: 'opacity 0.5s ease',
-        }}
-      >
+      <div className="relative z-10 w-full max-w-[1340px] mx-auto">
         <div className="grid md:grid-cols-[1.3fr_1fr] items-center gap-8 md:gap-16">
           {/* Left: Text */}
           <div>

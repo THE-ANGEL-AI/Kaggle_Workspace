@@ -4,6 +4,16 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import './index.css';
 
+// Отключаем браузерный scroll-restoration на GH Pages reload.
+// По умолчанию ('auto') браузер после reload возвращает scrollY туда, где
+// пользователь был до перезагрузки — а Lenis на первом фрейме этого не знает
+// и «телепортирует» страницу в середину. Переводим в ручной режим и явно
+// выставляем scrollY=0 при инициализации.
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 // --- GitHub Pages SPA-fallback bootstrap ---
 // 404.html (см. public/404.html) сохраняет в sessionStorage путь, на который
 // пришёл пользователь напрямую (например /news), и редиректит на /. Здесь мы

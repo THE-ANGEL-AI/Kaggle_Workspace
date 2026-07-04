@@ -58,3 +58,6 @@ instal/docs/
 
 # Browser automation artifacts (Playwright MCP)
 .playwright-mcp/
+
+# Screenshots
+*.png

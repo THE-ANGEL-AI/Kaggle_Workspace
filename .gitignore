@@ -1,16 +1,23 @@
 # ============================================================================
 # Kaggle_Workspace_FreeGPU — ветка `site`
-# Это React-сайт (Vite + React 19 + TS). Что НЕ публикуется на GitHub:
-#   - node_modules (генерируется npm ci)
-#   - dist/ и docs-site/dist/ (Vite build output, через GH Actions)
-#   - локальные state-файлы и IDE-мусор
+# В этой ветке живёт ТОЛЬКО готовый билд (docs-site/dist/).
+# Исходники (src/, конфиги) — в приватном репозитории для Vercel.
 # ============================================================================
 
-# --- Зависимости и build ---
+# --- Исходники (не пушим в site) ---
+src/
 node_modules/
-dist/
-docs-site/dist/
 .vite/
+package.json
+package-lock.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+index.html
+components.json
+eslint.config.mjs
+.prettierrc
+public/
 
 # --- Логи и runtime ---
 *.log
@@ -38,10 +45,7 @@ PROJECT_MEMORY.md
 stats.html
 stats.json
 
-# --- DEFENSE IN DEPTH: защита от случайного попадания Kaggle-папок в site ---
-# В этой ветке живёт только React-сайт. Если когда-то случайно окажутся тут
-# нижеуказанные папки (например, после `git checkout main` в смежной рабочей
-# копии и копирования) — `git add` их НЕ подхватит без `--force`.
+# --- DEFENSE IN DEPTH ---
 instal/
 workflows/
 Notebook/
@@ -50,5 +54,4 @@ _kaggle_tests/
 .claude/
 angel-ui/
 Claude Code Docs/
-PROJECT_MEMORY.md
 instal/docs/

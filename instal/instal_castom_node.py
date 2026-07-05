@@ -111,6 +111,7 @@ SYMLINKS = [
 
     ("/kaggle/input/datasets/theangelstudio/test-is-lora/ltx-2.3-22b-ic-lora-lipdub-0.9.safetensors",
      f"{COMFY_DIR}/models/loras/ltx-2.3-22b-ic-lora-lipdub-0.9.safetensors")
+ 
 ]
 
 

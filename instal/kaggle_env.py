@@ -32,26 +32,27 @@ ComfyUI на Kaggle: instal_comfyui.py, instal_castom_node.py, start.py.
 """
 
 import os
+import shlex
 import shutil
 import subprocess
 
 # ----------------------------------------------------------------------
 # Пути и параметры. Меняй здесь — подхватится во всех трёх скриптах.
 # ----------------------------------------------------------------------
-HOME_DIR      = "/kaggle/working"
-VENV_DIR      = f"{HOME_DIR}/venv"
-VENV_PYTHON   = f"{VENV_DIR}/bin/python"
-COMFY_DIR     = f"{HOME_DIR}/ComfyUI"
-NODES_DIR     = f"{COMFY_DIR}/custom_nodes"
+HOME_DIR: str      = "/kaggle/working"
+VENV_DIR: str      = f"{HOME_DIR}/venv"
+VENV_PYTHON: str   = f"{VENV_DIR}/bin/python"
+COMFY_DIR: str     = f"{HOME_DIR}/ComfyUI"
+NODES_DIR: str     = f"{COMFY_DIR}/custom_nodes"
 
 # Персистентные каталоги uv (все в /kaggle/working — переживают рестарт).
-UV_LOCAL_DIR  = f"{HOME_DIR}/bin"        # сам бинарь uv (UV_INSTALL_DIR)
-UV_PYTHON_DIR = f"{HOME_DIR}/uv-python"  # управляемый uv-ом базовый CPython
-UV_CACHE_DIR  = f"{HOME_DIR}/uv-cache"   # кэш колёс (torch не качается заново)
+UV_LOCAL_DIR: str  = f"{HOME_DIR}/bin"        # сам бинарь uv (UV_INSTALL_DIR)
+UV_PYTHON_DIR: str = f"{HOME_DIR}/uv-python"  # управляемый uv-ом базовый CPython
+UV_CACHE_DIR: str  = f"{HOME_DIR}/uv-cache"   # кэш колёс (torch не качается заново)
 
-PYTHON_VERSION = "3.12"                   # версия интерпретатора в venv
+PYTHON_VERSION: str = "3.12"                   # версия интерпретатора в venv
 
-UV_INSTALL_URL = "https://astral.sh/uv/install.sh"
+UV_INSTALL_URL: str = "https://astral.sh/uv/install.sh"
 
 
 # ----------------------------------------------------------------------
@@ -62,16 +63,13 @@ def warn(msg):  print(f"\n\033[93m⚠️  {msg}\033[0m", flush=True)
 def step(msg):  print(f"\n\033[96m=== {msg} ===\033[0m", flush=True)
 
 
-def run(cmd, check=True, **kwargs):
-    """Печатает и выполняет команду. По умолчанию падает при ошибке."""
-    if isinstance(cmd, str):
-        printable = cmd
-        kwargs.setdefault("shell", True)
-    else:
-        printable = " ".join(cmd)
-        kwargs.setdefault("shell", False)
-    print(f"$ {printable}", flush=True)
-    return subprocess.run(cmd, check=check, **kwargs)
+def run(cmd: list[str], check: bool = True, **kwargs) -> subprocess.CompletedProcess:  # type: ignore[name-defined]
+    """Печатает и выполняет команду (только списком). По умолчанию падает при ошибке."""
+    if not isinstance(cmd, list):
+        raise TypeError(f"run() принимает только list, получено: {type(cmd)}")
+    kwargs["shell"] = False
+    print(f"$ {shlex.join(cmd)}", flush=True)
+    return subprocess.run(cmd, check=check, **kwargs)  # type: ignore[arg-type]
 
 
 # ----------------------------------------------------------------------
@@ -79,7 +77,7 @@ def run(cmd, check=True, **kwargs):
 # автоматически в конце модуля, чтобы любой импортирующий скрипт сразу
 # получил правильный PATH и env-переменные uv.
 # ----------------------------------------------------------------------
-def setup_env():
+def setup_env() -> None:
     """Готовит окружение uv: персистентные каталоги + uv в PATH.
 
     Без тяжёлой работы (ничего не качает) — можно звать сколько угодно раз.
@@ -132,7 +130,7 @@ def ensure_uv():
     if os.path.exists(uv_bin):
         warn("uv найден, но без бита +x (рестарт Kaggle снял) — возвращаю +x")
         try:
-            os.chmod(uv_bin, 0o755)
+            os.chmod(uv_bin, 0o700)
         except OSError:
             pass
         os.environ["PATH"] = UV_LOCAL_DIR + os.pathsep + os.environ.get("PATH", "")
@@ -143,14 +141,16 @@ def ensure_uv():
     step("Установка uv (standalone → /kaggle/working/bin)")
     os.makedirs(UV_LOCAL_DIR, exist_ok=True)
     installer = os.path.join(UV_LOCAL_DIR, "uv-install.sh")
-    run(["curl", "-LsSf", UV_INSTALL_URL, "-o", installer])
+    curl_bin = shutil.which("curl") or "curl"
+    run([curl_bin, "-LsSf", UV_INSTALL_URL, "-o", installer])
     # КЛЮЧЕВОЙ ФИКС: каталог задаётся переменной UV_INSTALL_DIR, а НЕ флагом
     # --bin-dir (которого у инсталлятора нет). UV_NO_MODIFY_PATH=1 — не трогать
     # профили шелла (нам это не нужно, PATH правим сами через setup_env).
+    sh_bin = shutil.which("sh") or "/bin/sh"
     env = dict(os.environ)
     env["UV_INSTALL_DIR"] = UV_LOCAL_DIR
     env["UV_NO_MODIFY_PATH"] = "1"
-    run(["sh", installer], env=env)
+    run([sh_bin, installer], env=env)
 
     os.environ["PATH"] = UV_LOCAL_DIR + os.pathsep + os.environ.get("PATH", "")
     if not shutil.which("uv"):
@@ -176,7 +176,7 @@ def venv_python_ok():
         return True
     except subprocess.TimeoutExpired:
         return False
-    except (subprocess.SubprocessError, OSError) as exc:
+    except (subprocess.SubprocessError, OSError):
         # Ловим stderr, если бинарь есть, но падает (libc, kernel, ...)
         try:
             err = subprocess.run(
@@ -203,8 +203,9 @@ def diagnose_venv():
         if not os.access(target, os.X_OK):
             return (f"базовый CPython есть ({target}), но БЕЗ бита +x "
                     f"(рестарт Kaggle снял право исполнения)")
+        return ""  # symlink в порядке, дальнейшая диагностика невозможна
     elif not os.access(p, os.X_OK):
-        return "venv/bin/python есть, но БЕЗ бита +x (рестарт снял исполнение)"
+        return "venv/bin/python есть, но БЕЗ бита +x (рестарт снял исполнение)"  
     return "python на месте и исполняем, но падает при запуске (см. ошибку ниже)"
 
 
@@ -228,19 +229,68 @@ def repair_venv_perms():
     if os.path.isdir(UV_PYTHON_DIR):
         for root, _dirs, files in os.walk(UV_PYTHON_DIR):
             for f in files:
-                if f == "python3" or f.startswith("python3."):
+                if f in ("python", "python3") or f.startswith("python3."):
                     candidates.append(os.path.join(root, f))
     fixed = False
     for c in candidates:
         try:
             if os.path.exists(c):
-                os.chmod(c, 0o755)
+                os.chmod(c, 0o700)
                 fixed = True
         except OSError:
             pass
     if fixed:
         warn("Вернул бит +x интерпретатору venv/uv-python (после рестарта слетал)")
+
+    # Triton бинарники и .so — тоже теряют +x после рестарта Kaggle.
+    # Без этого triton падает с PermissionError при первой компиляции ядра.
+    _repair_triton_perms()
+
     return venv_python_ok()
+
+
+def _repair_triton_perms() -> None:
+    """Возвращает +x бинарникам и .so triton в venv.
+
+    После рестарта Kaggle ptxas и .so теряют бит исполнения →
+    PermissionError: [Errno 13] Permission denied: '.../triton/backends/nvidia/bin/ptxas'
+    """
+    triton_dir = os.path.join(VENV_DIR, "lib", f"python{PYTHON_VERSION}",
+                              "site-packages", "triton")
+    if not os.path.isdir(triton_dir):
+        return
+    
+    # Явно чиним ptxas в backends/nvidia/bin (самый критичный файл)
+    ptxas_path = os.path.join(triton_dir, "backends", "nvidia", "bin", "ptxas")
+    ptxas_fixed = False
+    if os.path.isfile(ptxas_path):
+        try:
+            if not os.access(ptxas_path, os.X_OK):
+                os.chmod(ptxas_path, 0o755)
+                ptxas_fixed = True
+        except OSError as e:
+            warn(f"Не удалось чинить ptxas: {e}")
+    
+    # Ловим все остальные бинарники и .so файлы
+    fixed = 0
+    for root, _dirs, files in os.walk(triton_dir):
+        for f in files:
+            # .so файлы + файлы без расширения (бинарники)
+            is_so = f.endswith(".so")
+            is_binary = not os.path.splitext(f)[1]  # нет расширения
+            
+            if is_so or is_binary:
+                fp = os.path.join(root, f)
+                try:
+                    if os.path.isfile(fp) and not os.access(fp, os.X_OK):
+                        os.chmod(fp, 0o755)
+                        fixed += 1
+                except OSError:
+                    pass
+    
+    if ptxas_fixed or fixed > 0:
+        total = (1 if ptxas_fixed else 0) + fixed
+        warn(f"Вернул +x {total} файлам triton (ptxas/.so) после рестарта Kaggle")
 
 
 def repair_base_python_via_uv():
@@ -280,10 +330,17 @@ def repair_base_python_via_uv():
             for f in files:
                 if f.startswith("python3.12"):
                     fp = os.path.join(root, f)
+                    # Whitelist: путь и его реальный target должны быть
+                    # абсолютными и лежать строго внутри UV_PYTHON_DIR —
+                    # исключает path injection через симлинки.
+                    real_fp = os.path.realpath(fp)
+                    _prefix = UV_PYTHON_DIR.rstrip(os.sep) + os.sep
+                    if not real_fp.startswith(_prefix):
+                        continue
                     try:
-                        subprocess.run([fp, "-c", "pass"],
-                                       check=True, capture_output=True, timeout=15)
-                        fresh_python = fp
+                        run([real_fp, "-c", "pass"],
+                            check=True, capture_output=True, timeout=15)
+                        fresh_python = real_fp
                         break
                     except (subprocess.SubprocessError, OSError):
                         continue
@@ -299,7 +356,7 @@ def repair_base_python_via_uv():
     return False
 
 
-def ensure_venv():
+def ensure_venv() -> bool:
     """Гарантирует рабочий venv. Идемпотентно и максимально дёшево.
 
     Логика по возрастанию стоимости:
@@ -342,12 +399,12 @@ def ensure_venv():
         raise RuntimeError("venv создан, но python не запускается — смотри лог выше")
     # Ставим seed-пакеты (pip, setuptools) — то же самое, что --seed, но без warning
     _seed = subprocess.run(
-        ["uv", "pip", "install", "--python", VENV_PYTHON, "pip", "setuptools"],
+        ["uv", "pip", "install", "--python", VENV_PYTHON, "pip", "setuptools"],  # type: ignore[arg-type]
         capture_output=True, text=True, timeout=60,
     )
     if _seed.returncode == 0:
         # Вытаскиваем версию pip из вывода (красиво)
-        for _line in _seed.stdout.splitlines():
+        for _line in _seed.stdout.splitlines():  # type: ignore[union-attr]
             _line = _line.strip()
             if "pip" in _line and "setuptools" not in _line:
                 log(f"  + {_line}")
@@ -377,7 +434,7 @@ def torch_cuda_ok():
         return False
 
 
-def install_python():
+def install_python() -> bool:
     """Гарантирует рабочий Python: uv в PATH + venv (создан/починен/пересоздан).
 
     Единая точка входа для всех трёх скриптов (instal_comfyui.py,
@@ -393,12 +450,15 @@ def install_python():
       False — были выполнены ремонт/пересоздание (пакеты могли пропасть).
     """
     ensure_uv()
+    # После рестарта Kaggle ремонтим права доступа даже если venv рабочий
+    # (triton.ptxas часто остается без +x после рестарта)
+    _repair_triton_perms()
     return ensure_venv()
 
 
-def uv_pip_install(*packages, extra_args=None):
+def uv_pip_install(*packages: str, extra_args: list[str] | None = None) -> None:
     """uv pip install в наш venv (быстрее обычного pip)."""
-    cmd = ["uv", "pip", "install", "--python", VENV_PYTHON]
+    cmd: list[str] = ["uv", "pip", "install", "--python", VENV_PYTHON]
     if extra_args:
         cmd += list(extra_args)
     cmd += list(packages)

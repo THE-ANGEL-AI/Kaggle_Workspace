@@ -114,7 +114,7 @@ def setup_env() -> None:
 # ----------------------------------------------------------------------
 # Установка uv. Идемпотентна: ставит, только если его нет, и чинит +x.
 # ----------------------------------------------------------------------
-def ensure_uv():
+def ensure_uv(verbose: bool = True):
     """Гарантирует наличие рабочего uv в персистентном каталоге.
 
     Используем standalone-инсталлятор (curl), а НЕ pip — потому что:
@@ -127,7 +127,8 @@ def ensure_uv():
 
     # Уже в PATH и работает — выходим.
     if shutil.which("uv"):
-        log("uv уже установлен (пропуск)")
+        if verbose:
+            log("uv уже установлен (пропуск)")
         return
 
     # Бинарь есть на диске, но потерял +x после рестарта Kaggle — чиним дёшево.
@@ -391,7 +392,7 @@ def repair_base_python_via_uv():
     return False
 
 
-def ensure_venv() -> bool:
+def ensure_venv(verbose: bool = True) -> bool:
     """Гарантирует рабочий venv. Идемпотентно и максимально дёшево.
 
     Логика по возрастанию стоимости:
@@ -405,9 +406,11 @@ def ensure_venv() -> bool:
       True  — venv уже работал (ничего не делали);
       False — venv был починен/пересоздан (torch и пакеты могли пропасть).
     """
-    step("Проверка/создание venv")
+    if verbose:
+        step("Проверка/создание venv")
     if venv_python_ok():
-        log(f"venv уже существует и рабочий: {VENV_DIR} (пересоздание пропущено)")
+        if verbose:
+            log(f"venv уже существует и рабочий: {VENV_DIR} (пересоздание пропущено)")
         return True
 
     if os.path.exists(VENV_DIR):
@@ -425,7 +428,7 @@ def ensure_venv() -> bool:
         # указывает на удалённый CPython). Он только готовит свежий CPython
         # для следующего шага. Продолжаем с пересозданием venv.
 
-    ensure_uv()  # для пересоздания нужен uv
+    ensure_uv(verbose=verbose)  # для пересоздания нужен uv
     # --clear молча перезаписывает существующую папку (без вопроса «очистить?»).
     # --seed НЕ используем: в новых uv (≥0.9) deprecated, выдаёт warning.
     # Вместо этого ставим pip/setuptools отдельно через uv pip install.
@@ -469,7 +472,7 @@ def torch_cuda_ok():
         return False
 
 
-def ensure_triton_works() -> bool:
+def ensure_triton_works(verbose: bool = True) -> bool:
     """Гарантирует, что triton работает или включает TRITON_INTERPRET_MODE.
     
     После рестарта Kaggle ptxas часто остаётся без прав на исполнение.
@@ -479,28 +482,33 @@ def ensure_triton_works() -> bool:
       True  — triton работает нормально (JIT mode);
       False — включен интерпретируемый режим (медленнее, но работает).
     """
-    step("Проверка triton.ptxas")
+    if verbose:
+        step("Проверка triton.ptxas")
     
     ptxas_path = os.path.join(VENV_DIR, "lib", f"python{PYTHON_VERSION}",
                               "site-packages", "triton", "backends", "nvidia", "bin", "ptxas")
     
     if not os.path.isfile(ptxas_path):
         # ptxas не установлен (triton ещё не установлен или другая версия)
-        log("triton.ptxas не найден (triton не установлен)")
+        if verbose:
+            log("triton.ptxas не найден (triton не установлен)")
         return True
     
     # Проверяем исполняемость
     if os.access(ptxas_path, os.X_OK):
-        log("triton.ptxas работает нормально (JIT mode)")
+        if verbose:
+            log("triton.ptxas работает нормально (JIT mode)")
         return True
     
     # Пробуем чинить
-    warn(f"triton.ptxas без прав на исполнение — пробую починить")
+    if verbose:
+        warn(f"triton.ptxas без прав на исполнение — пробую починить")
     _repair_triton_perms()
     
     # Проверяем второй раз после ремонта
     if os.access(ptxas_path, os.X_OK):
-        log("triton.ptxas успешно починен")
+        if verbose:
+            log("triton.ptxas успешно починен")
         return True
     
     # Ремонт не помог — включаем интерпретируемый режим
@@ -509,7 +517,7 @@ def ensure_triton_works() -> bool:
     return False
 
 
-def install_python() -> bool:
+def install_python(verbose: bool = True) -> bool:
     """Гарантирует рабочий Python: uv в PATH + venv (создан/починен/пересоздан).
 
     Единая точка входа для всех трёх скриптов (instal_comfyui.py,
@@ -521,17 +529,20 @@ def install_python() -> bool:
 
     Идемпотентна и максимально дёшева: если всё уже работает — ничего не делает.
 
+    Args:
+      verbose: если False, скрывает логи на обычные операции (только критичные)
+
     Returns:
       True  — все компоненты уже работали (ничего не делали);
       False — были выполнены ремонт/пересоздание (пакеты могли пропасть).
     """
-    ensure_uv()
+    ensure_uv(verbose=verbose)
     # После рестарта Kaggle ремонтим права доступа даже если venv рабочий
     # (triton.ptxas часто остается без +x после рестарта)
     _repair_triton_perms()
     # Проверяем и чиним triton перед использованием
-    ensure_triton_works()
-    return ensure_venv()
+    ensure_triton_works(verbose=verbose)
+    return ensure_venv(verbose=verbose)
 
 
 def uv_pip_install(*packages: str, extra_args: list[str] | None = None) -> None:

@@ -91,8 +91,8 @@ SYMLINKS = [
     ("/kaggle/input/models/theangel/ltx-2-3/other/default/7/taeltx2_3.safetensors",
      f"{COMFY_DIR}/models/vae/taeltx2_3.safetensors"),
 
-    ("/kaggle/input/models/theangel/ltx-2-3/other/default/7/ltx-2.3-22b-distilled-1.1-Q6_K.gguf",
-     f"{COMFY_DIR}/models/diffusion_models/ltx-2.3-22b-distilled-1.1-Q6_K.gguf"),
+    ("/kaggle/input/datasets/theangelstudio/test-is-lora/ltx-2.3-22b-dev-UD-Q3_K_M.gguf",
+     f"{COMFY_DIR}/models/diffusion_models/ltx-2.3-22b-dev-UD-Q3_K_M.gguf"),
 
     ("/kaggle/input/models/theangel/ltx-2-3/other/default/7/ltx-2.3-22b-distilled-1.1-UD-Q5_K_M.gguf",
      f"{COMFY_DIR}/models/diffusion_models/ltx-2.3-22b-distilled-1.1-UD-Q5_K_M.gguf"),

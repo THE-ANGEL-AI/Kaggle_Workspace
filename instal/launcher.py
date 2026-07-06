@@ -107,6 +107,36 @@ class ComfyLauncher:
     # ------------------------------------------------------------------
     # Запуск (в фоновом потоке)
     # ------------------------------------------------------------------
+    def _diagnose_triton_status(self):
+        """Проверяет статус триton и выводит информацию в лаунчер."""
+        ptxas_path = os.path.join(
+            ke.VENV_DIR, "lib", f"python{ke.PYTHON_VERSION}",
+            "site-packages", "triton", "backends", "nvidia", "bin", "ptxas"
+        )
+        
+        # Проверяем наличие и исполняемость ptxas
+        ptxas_ok = os.path.isfile(ptxas_path) and os.access(ptxas_path, os.X_OK)
+        interpret_mode = os.environ.get("TRITON_INTERPRET_MODE") == "1"
+        
+        self.logger.print(f"\n{'='*60}")
+        self.logger.print(f"  🔍 ДИАГНОСТИКА TRITON")
+        self.logger.print(f"{'='*60}")
+        
+        if ptxas_ok and not interpret_mode:
+            self.logger.print(f"  ✅ triton.ptxas работает нормально")
+            self.logger.print(f"  📊 Режим: JIT compilation (быстро, оптимально)")
+            self.logger.print(f"  ⚡ Производительность: МАКСИМАЛЬНАЯ")
+        elif interpret_mode:
+            self.logger.print(f"  ⚠️  triton.ptxas НЕ исполняем или не восстановлен")
+            self.logger.print(f"  📊 Режим: INTERPRET mode (медленнее, но безопасно)")
+            self.logger.print(f"  ⚡ Производительность: СНИЖЕНА на ~5x (но работает)")
+            self.logger.print(f"  ℹ️  Причина: PermissionError на ptxas после рестарта Kaggle")
+        else:
+            self.logger.print(f"  ⚠️  triton не установлен")
+            self.logger.print(f"  📊 Режим: Не определен (будет установлен с ComfyUI)")
+        
+        self.logger.print(f"{'='*60}\n")
+
     def _startup(self):
         self._starting = True
         _t_startup = time.time()
@@ -115,6 +145,8 @@ class ComfyLauncher:
         self.logger.print(f"  ComfyUI Launcher · {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.logger.print(f"{'='*60}")
         try:
+            # Диагностика триton в начале
+            self._diagnose_triton_status()
             self._cleanup_old()
             self._check_git_updates()
             self._check_files()

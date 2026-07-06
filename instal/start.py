@@ -117,47 +117,7 @@ ke.install_python(verbose=False)
 
 
 # ----------------------------------------------------------------------
-# 2. Диагностика триton перед запуском ComfyUI
-# ----------------------------------------------------------------------
-def diagnose_triton_status():
-    """Проверяет статус триton и выводит информацию перед запуском ComfyUI.
-    
-    Убеждается, что:
-      1. triton.ptxas исполняем (или включен TRITON_INTERPRET_MODE)
-      2. режим работы ясен пользователю (JIT = быстро, INTERPRET = медленно)
-    """
-    ptxas_path = os.path.join(
-        ke.VENV_DIR, "lib", f"python{ke.PYTHON_VERSION}",
-        "site-packages", "triton", "backends", "nvidia", "bin", "ptxas"
-    )
-    
-    # Проверяем наличие и исполняемость ptxas
-    ptxas_ok = os.path.isfile(ptxas_path) and os.access(ptxas_path, os.X_OK)
-    interpret_mode = os.environ.get("TRITON_INTERPRET_MODE") == "1"
-    
-    print("\n" + "="*70)
-    print("🔍 ДИАГНОСТИКА TRITON ПЕРЕД ЗАПУСКОМ")
-    print("="*70)
-    
-    if ptxas_ok and not interpret_mode:
-        print("✅ triton.ptxas работает нормально")
-        print("📊 Режим: JIT compilation (быстро, оптимально)")
-        print("⚡ Производительность: МАКСИМАЛЬНАЯ\n")
-        return True
-    elif interpret_mode:
-        print("⚠️  triton.ptxas НЕ исполняем или не восстановлен")
-        print("📊 Режим: INTERPRET mode (медленнее, но безопасно)")
-        print("⚡ Производительность: СНИЖЕНА на ~5x (но работает)")
-        print("ℹ️  Причина: PermissionError на ptxas после рестарта Kaggle\n")
-        return False
-    else:
-        print("⚠️  triton не установлен")
-        print("📊 Режим: Не определен (будет установлен с ComfyUI)\n")
-        return None
-
-
-# ----------------------------------------------------------------------
-# 3. Запуск — вся тяжёлая работа в launcher.py
+# 2. Запуск — вся тяжёлая работа в launcher.py
 # ----------------------------------------------------------------------
 def launch():
     """Передаёт управление ComfyLauncher'у. Тот сам доустановит всё
@@ -170,7 +130,5 @@ def launch():
 
 # При `%run start.py` запускаемся автоматически.
 if __name__ == "__main__":
-    # Диагностика триton перед запуском
-    diagnose_triton_status()
     # Запускаем ComfyUI
     launch()

@@ -92,6 +92,11 @@ def setup_env() -> None:
     os.environ.setdefault("UV_CACHE_DIR", UV_CACHE_DIR)
     # Брать только управляемый uv-ом python (не системный из ~, который пропадёт).
     os.environ.setdefault("UV_PYTHON_PREFERENCE", "only-managed")
+    
+    # Triton: интерпретируемый режим вместо JIT (на случай проблем с ptxas после рестарта).
+    # TRITON_INTERPRET_MODE=1 медленнее, но избегает PermissionError на ptxas.
+    # Если ptxas работает, можно отключить эту переменную.
+    # os.environ.setdefault("TRITON_INTERPRET_MODE", "1")
 
     # Каталоги создаём заранее (терпимо к ошибкам — для локального импорта вне Kaggle).
     for d in (UV_LOCAL_DIR, UV_CACHE_DIR):
@@ -250,47 +255,77 @@ def repair_venv_perms():
 
 
 def _repair_triton_perms() -> None:
-    """Возвращает +x бинарникам и .so triton в venv.
+    """Возвращает +x бинарникам и .so triton в venv с тройной проверкой.
 
     После рестарта Kaggle ptxas и .so теряют бит исполнения →
     PermissionError: [Errno 13] Permission denied: '.../triton/backends/nvidia/bin/ptxas'
+    
+    Использует chmod рекурсивно и проверяет результат.
     """
     triton_dir = os.path.join(VENV_DIR, "lib", f"python{PYTHON_VERSION}",
                               "site-packages", "triton")
     if not os.path.isdir(triton_dir):
         return
     
-    # Явно чиним ptxas в backends/nvidia/bin (самый критичный файл)
-    ptxas_path = os.path.join(triton_dir, "backends", "nvidia", "bin", "ptxas")
-    ptxas_fixed = False
-    if os.path.isfile(ptxas_path):
-        try:
-            if not os.access(ptxas_path, os.X_OK):
-                os.chmod(ptxas_path, 0o755)
-                ptxas_fixed = True
-        except OSError as e:
-            warn(f"Не удалось чинить ptxas: {e}")
+    # Список для отслеживания файлов, которые нужно чинить
+    to_fix = []
     
-    # Ловим все остальные бинарники и .so файлы
-    fixed = 0
-    for root, _dirs, files in os.walk(triton_dir):
-        for f in files:
-            # .so файлы + файлы без расширения (бинарники)
-            is_so = f.endswith(".so")
-            is_binary = not os.path.splitext(f)[1]  # нет расширения
-            
-            if is_so or is_binary:
+    # Сканируем ВСЕ файлы в triton
+    try:
+        for root, _dirs, files in os.walk(triton_dir):
+            for f in files:
                 fp = os.path.join(root, f)
-                try:
+                # Пропускаем симлинки (могут быть в другом месте)
+                if os.path.islink(fp):
+                    continue
+                # Чиним .so файлы и файлы без расширения (бинарники)
+                if f.endswith((".so", ".so.1", ".so.2")) or (
+                    os.path.isfile(fp) and not os.path.splitext(f)[1]
+                ):
                     if os.path.isfile(fp) and not os.access(fp, os.X_OK):
-                        os.chmod(fp, 0o755)
-                        fixed += 1
-                except OSError:
-                    pass
+                        to_fix.append(fp)
+    except (OSError, PermissionError) as e:
+        warn(f"Ошибка при сканировании triton: {e}")
+        return
     
-    if ptxas_fixed or fixed > 0:
-        total = (1 if ptxas_fixed else 0) + fixed
-        warn(f"Вернул +x {total} файлам triton (ptxas/.so) после рестарта Kaggle")
+    if not to_fix:
+        return
+    
+    # Чиним найденные файлы
+    fixed_count = 0
+    failed_files = []
+    
+    for fp in to_fix:
+        try:
+            os.chmod(fp, 0o755)
+            # Двойная проверка
+            if os.access(fp, os.X_OK):
+                fixed_count += 1
+            else:
+                # Повторная попытка с разными правами
+                try:
+                    os.chmod(fp, 0o777)
+                    if os.access(fp, os.X_OK):
+                        fixed_count += 1
+                    else:
+                        failed_files.append(fp)
+                except OSError:
+                    failed_files.append(fp)
+        except OSError as e:
+            failed_files.append(fp)
+    
+    # Логируем результаты
+    if fixed_count > 0:
+        warn(f"Вернул +x {fixed_count} файлам triton (ptxas/.so) после рестарта Kaggle")
+    
+    if failed_files:
+        # Логируем только критичный файл ptxas
+        critical_files = [f for f in failed_files if "ptxas" in f]
+        if critical_files:
+            for cf in critical_files:
+                warn(f"КРИТИЧНО: Не удалось чинить права на {cf}")
+                # Последняя отчаянная попытка: проверяем, может быть нужен TRITON_INTERPRET_MODE
+                warn(f"Рекомендуется установить переменную TRITON_INTERPRET_MODE=1 или переустановить triton")
 
 
 def repair_base_python_via_uv():
@@ -434,6 +469,46 @@ def torch_cuda_ok():
         return False
 
 
+def ensure_triton_works() -> bool:
+    """Гарантирует, что triton работает или включает TRITON_INTERPRET_MODE.
+    
+    После рестарта Kaggle ptxas часто остаётся без прав на исполнение.
+    Эта функция пытается чинить это и включает fallback режим если нужно.
+    
+    Returns:
+      True  — triton работает нормально (JIT mode);
+      False — включен интерпретируемый режим (медленнее, но работает).
+    """
+    step("Проверка triton.ptxas")
+    
+    ptxas_path = os.path.join(VENV_DIR, "lib", f"python{PYTHON_VERSION}",
+                              "site-packages", "triton", "backends", "nvidia", "bin", "ptxas")
+    
+    if not os.path.isfile(ptxas_path):
+        # ptxas не установлен (triton ещё не установлен или другая версия)
+        log("triton.ptxas не найден (triton не установлен)")
+        return True
+    
+    # Проверяем исполняемость
+    if os.access(ptxas_path, os.X_OK):
+        log("triton.ptxas работает нормально (JIT mode)")
+        return True
+    
+    # Пробуем чинить
+    warn(f"triton.ptxas без прав на исполнение — пробую починить")
+    _repair_triton_perms()
+    
+    # Проверяем второй раз после ремонта
+    if os.access(ptxas_path, os.X_OK):
+        log("triton.ptxas успешно починен")
+        return True
+    
+    # Ремонт не помог — включаем интерпретируемый режим
+    warn("Ремонт ptxas не удался — включаю TRITON_INTERPRET_MODE=1 (медленнее, но работает)")
+    os.environ["TRITON_INTERPRET_MODE"] = "1"
+    return False
+
+
 def install_python() -> bool:
     """Гарантирует рабочий Python: uv в PATH + venv (создан/починен/пересоздан).
 
@@ -441,7 +516,8 @@ def install_python() -> bool:
     instal_castom_node.py, start.py). Внутри вызывает:
        1. ensure_uv()   — ставит uv-бинарь (если нет / битый),
        2. ensure_venv() — проверяет venv, чинит +x, переустанавливает
-                          CPython, при необходимости пересоздаёт venv.
+                          CPython, при необходимости пересоздаёт venv,
+       3. ensure_triton_works() — чинит triton.ptxas или включает TRITON_INTERPRET_MODE.
 
     Идемпотентна и максимально дёшева: если всё уже работает — ничего не делает.
 
@@ -453,6 +529,8 @@ def install_python() -> bool:
     # После рестарта Kaggle ремонтим права доступа даже если venv рабочий
     # (triton.ptxas часто остается без +x после рестарта)
     _repair_triton_perms()
+    # Проверяем и чиним triton перед использованием
+    ensure_triton_works()
     return ensure_venv()
 
 

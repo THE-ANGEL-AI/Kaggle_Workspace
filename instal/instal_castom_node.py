@@ -54,7 +54,7 @@ CUSTOM_NODES = {
     "WhatDreamsCost-ComfyUI": "https://github.com/WhatDreamsCost/WhatDreamsCost-ComfyUI.git",
     # LTX2 MultiGPU — авторская нода THE-ANGEL-AI.
     # Собственная разработка с нуля: Hybrid Split Loader для LTX 2.3 GGUF на 2×T4 (Kaggle).
-    "ComfyUI-LTX2-MultiGPU": "https://github.com/THE-ANGEL-AI/ComfyUI-LTX2-MultiGPU.git",
+    "ComfyUI-LTX2-MultiGPU": "https://github.com/dreamfast/ComfyUI-LTX2-MultiGPU.git",
 }
 
 # ----------------------------------------------------------------------

@@ -562,29 +562,24 @@ class ComfyLauncher:
         self._log_elapsed(t0)
 
     # ------------------------------------------------------------------
-    # 4b. SageAttention-SM75 (Turing T4) — кастомная нода attention
+    # 4b. SageAttention (Turing T4) — pip пакет
     # ------------------------------------------------------------------
     def _install_sage_attention(self):
-        """Устанавливает SageAttention-SM75-path в venv + custom node.
+        """Устанавливает sageattention==1.0.6 через pip.
 
-        ВНИМАНИЕ: НЕ РАБОТАЕТ С GGUF-МОДЕЛЯМИ (llama.cpp бэкенд).
-        Только для диффузионных моделей (SD/SDXL/Flux).
+        Поддерживает sm_75 (Turing T4) начиная с версии 1.0.6.
         """
-        t0 = self._log_step("Шаг 5/7: SageAttention-SM75 (Turing T4 CUDA kernel)",
-                            status="⚙️ Собираю SageAttention-SM75...")
+        t0 = self._log_step("Шаг 5/7: SageAttention 1.0.6",
+                            status="⚙️ Устанавливаю SageAttention 1.0.6...")
         try:
             self.sage_ok = sage_installer.install(
                 home_dir=ke.HOME_DIR,
                 venv_python=ke.VENV_PYTHON,
-                comfy_dir=ke.COMFY_DIR,
                 logger=self.logger,
             )
             if self.sage_ok:
-                self.logger.print("   SageAttention-SM75 установлен — "
-                                  "включается ТОЛЬКО через SageAttention-T4 Apply ноду вручную")
-                # Не внедряем в workflow автоматически — пользователь сам
-                # добавляет ноду SageAttention-T4 Apply в workflow при необходимости
-                # sage_installer.inject_into_workflows(ke.COMFY_DIR, self.logger)
+                self.logger.print("  ✓ SageAttention 1.0.6 установлен — "
+                                  "работает через F.scaled_dot_product_attention")
             else:
                 self.logger.print("  → SageAttention не установлен — "
                                   "фолбэк на torch SDPA")
@@ -600,7 +595,7 @@ class ComfyLauncher:
     def _start_comfy(self):
         self._log_step("Шаг 6/7: Запуск ComfyUI", status="⏳ Запуск ComfyUI...")
         if self.sage_ok:
-            self.logger.print("  → Attention: SageAttention-SM75 (T4 custom node)")
+            self.logger.print("  → Attention: SageAttention 1.0.6")
         else:
             self.logger.print("  → Attention: torch SDPA (default)")
 

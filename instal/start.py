@@ -17,7 +17,7 @@ start.py
   * kaggle_env.py      — пути, venv, uv (единый источник правды)
   * launcher.py        — ComfyLauncher (проверки, доустановка, жизненный цикл)
   * logging_ui.py      — LogManager (UI + троттлинг лога)
-  * sage_installer.py  — SageAttention-SM75 (Turing T4)
+  * sage_installer.py  — SageAttention 1.0.6 (Turing T4, pip)
 ================================================================
 """
 

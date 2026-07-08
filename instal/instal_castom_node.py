@@ -182,37 +182,6 @@ def make_symlink(src, dst):
     log(f"Ссылка: {os.path.basename(dst)}")
 
 
-# ----------------------------------------------------------------------
-# Авто-вставка SageAttention-T4 в workflow
-# ----------------------------------------------------------------------
-def inject_sageattn_into_workflows():
-    print()
-    print('\033[96m=== Авто-вставка SageAttention-T4 в workflow ===\033[0m', flush=True)
-
-    sage_node_dir = os.path.join(NODES_DIR, 'SageAttention-T4')
-    if not os.path.isdir(sage_node_dir):
-        warn('Нода SageAttention-T4 не найдена в custom_nodes — пропускаю')
-        return
-
-    injector = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'scripts', 'inject_sageattn_workflow.py'
-    )
-
-    if not os.path.exists(injector):
-        warn(f'Инжектор не найден: {injector}')
-        log('Добавь ноду SageAttention-T4 вручную или перезапусти скрипт')
-        return
-
-    workflows_dir = os.path.join(COMFY_DIR, 'user', 'default', 'workflows')
-    if not os.path.isdir(workflows_dir):
-        warn(f'Папка workflow не найдена: {workflows_dir}')
-        log('Добавь ноду SageAttention-T4 вручную или сохрани workflow и перезапусти скрипт')
-        return
-
-    run([sys.executable, injector, workflows_dir], check=False)
-
-
 def main():
     step("ШАГ 2: кастомные ноды + ссылки на модели")
 
@@ -227,7 +196,6 @@ def main():
         make_symlink(src, dst)
 
     log("ГОТОВО. Ноды и модели на месте. Теперь запусти: %run instal/start.py")
-    # SageAttention-T4 workflow injection happens later in start.py (after symlink creation)
 
 
 if __name__ == "__main__":

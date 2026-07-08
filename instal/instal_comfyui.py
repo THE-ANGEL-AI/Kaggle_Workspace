@@ -74,8 +74,8 @@ def install_system_packages():
     if shutil.which("ffmpeg"):
         log("ffmpeg уже установлен (пропуск apt)")
         return
-    run("apt-get update -qq", check=False)
-    run("apt-get install -y -qq ffmpeg", check=False)
+    run(["apt-get", "update", "-qq"], check=False)
+    run(["apt-get", "install", "-y", "-qq", "ffmpeg"], check=False)
 
 
 # ----------------------------------------------------------------------
